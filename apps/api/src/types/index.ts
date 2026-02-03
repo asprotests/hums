@@ -31,6 +31,31 @@ export interface JwtPayload {
   userId: string;
   email: string;
   roles: string[];
+  permissions: string[];
+}
+
+export interface TokenPair {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  username: string;
+  firstName: string;
+  lastName: string;
+  roles: Array<{
+    id: string;
+    name: string;
+    displayName: string;
+  }>;
+  permissions: string[];
+}
+
+export interface LoginResponse {
+  user: AuthUser;
+  tokens: TokenPair;
 }
 
 declare global {
