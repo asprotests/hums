@@ -1,0 +1,40 @@
+{
+  "name": "hums-v2",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hormuud University Management System V2",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@hums/web",
+    "dev:api": "turbo run dev --filter=@hums/api",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "db:generate": "turbo run db:generate --filter=@hums/database",
+    "db:migrate": "turbo run db:migrate --filter=@hums/database",
+    "db:migrate:dev": "turbo run db:migrate:dev --filter=@hums/database",
+    "db:seed": "turbo run db:seed --filter=@hums/database",
+    "db:studio": "turbo run db:studio --filter=@hums/database",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "typecheck": "turbo run typecheck"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.1.0",
+    "turbo": "^2.0.0",
+    "typescript": "^5.3.0"
+  },
+  "type": "module",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
