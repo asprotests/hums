@@ -385,8 +385,8 @@ async function main() {
   // Create Sample Academic Structure
   // ===========================================
 
-  // Create Faculty
-  const faculty = await prisma.faculty.upsert({
+  // Create Faculties
+  const facultyComputing = await prisma.faculty.upsert({
     where: { code: 'FCS' },
     update: {},
     create: {
@@ -396,24 +396,56 @@ async function main() {
     },
   });
 
-  console.info(`Created faculty: ${faculty.name}`);
+  const facultyBusiness = await prisma.faculty.upsert({
+    where: { code: 'FB' },
+    update: {},
+    create: {
+      name: 'Faculty of Business Administration',
+      nameLocal: 'Kulliyadda Maamulka Ganacsi',
+      code: 'FB',
+    },
+  });
 
-  // Create Department
-  const department = await prisma.department.upsert({
+  console.info(`Created 2 faculties: ${facultyComputing.name}, ${facultyBusiness.name}`);
+
+  // Create Departments
+  const deptCS = await prisma.department.upsert({
     where: { code: 'CS' },
     update: {},
     create: {
       name: 'Department of Computer Science',
       nameLocal: 'Waaxda Sayniska Kombuyuutarka',
       code: 'CS',
-      facultyId: faculty.id,
+      facultyId: facultyComputing.id,
     },
   });
 
-  console.info(`Created department: ${department.name}`);
+  const deptIT = await prisma.department.upsert({
+    where: { code: 'IT' },
+    update: {},
+    create: {
+      name: 'Department of Information Technology',
+      nameLocal: 'Waaxda Tiknoolajiyada Macluumaadka',
+      code: 'IT',
+      facultyId: facultyComputing.id,
+    },
+  });
 
-  // Create Program
-  const program = await prisma.program.upsert({
+  const deptMgmt = await prisma.department.upsert({
+    where: { code: 'MGMT' },
+    update: {},
+    create: {
+      name: 'Department of Management',
+      nameLocal: 'Waaxda Maamulka',
+      code: 'MGMT',
+      facultyId: facultyBusiness.id,
+    },
+  });
+
+  console.info(`Created 3 departments: ${deptCS.name}, ${deptIT.name}, ${deptMgmt.name}`);
+
+  // Create Programs
+  const programBScCS = await prisma.program.upsert({
     where: { code: 'BSC-CS' },
     update: {},
     create: {
@@ -423,49 +455,249 @@ async function main() {
       type: 'BACHELOR',
       durationYears: 4,
       totalCredits: 132,
-      departmentId: department.id,
+      departmentId: deptCS.id,
     },
   });
 
-  console.info(`Created program: ${program.name}`);
+  const programBScIT = await prisma.program.upsert({
+    where: { code: 'BSC-IT' },
+    update: {},
+    create: {
+      name: 'Bachelor of Science in Information Technology',
+      nameLocal: 'Shahaadada Sayniska ee Tiknoolajiyada Macluumaadka',
+      code: 'BSC-IT',
+      type: 'BACHELOR',
+      durationYears: 4,
+      totalCredits: 128,
+      departmentId: deptIT.id,
+    },
+  });
 
-  // Create Sample Courses
-  const courses = [
-    {
+  const programBBA = await prisma.program.upsert({
+    where: { code: 'BBA' },
+    update: {},
+    create: {
+      name: 'Bachelor of Business Administration',
+      nameLocal: 'Shahaadada Maamulka Ganacsi',
+      code: 'BBA',
+      type: 'BACHELOR',
+      durationYears: 4,
+      totalCredits: 128,
+      departmentId: deptMgmt.id,
+    },
+  });
+
+  const programDipIT = await prisma.program.upsert({
+    where: { code: 'DIP-IT' },
+    update: {},
+    create: {
+      name: 'Diploma in Information Technology',
+      nameLocal: 'Dibloomada Tiknoolajiyada Macluumaadka',
+      code: 'DIP-IT',
+      type: 'DIPLOMA',
+      durationYears: 2,
+      totalCredits: 72,
+      departmentId: deptIT.id,
+    },
+  });
+
+  console.info(`Created 4 programs: ${programBScCS.name}, ${programBScIT.name}, ${programBBA.name}, ${programDipIT.name}`);
+
+  // Create Courses with Prerequisites
+  const courseCS101 = await prisma.course.upsert({
+    where: { code: 'CS101' },
+    update: {},
+    create: {
       name: 'Introduction to Programming',
       nameLocal: 'Hordhac Barnaamijyada',
       code: 'CS101',
       credits: 3,
       description: 'Fundamentals of programming using Python',
+      departmentId: deptCS.id,
     },
-    {
+  });
+
+  const courseCS102 = await prisma.course.upsert({
+    where: { code: 'CS102' },
+    update: {},
+    create: {
+      name: 'Object-Oriented Programming',
+      nameLocal: 'Barnaamijyada OOP',
+      code: 'CS102',
+      credits: 3,
+      description: 'Object-oriented programming concepts using Java',
+      departmentId: deptCS.id,
+    },
+  });
+
+  const courseCS201 = await prisma.course.upsert({
+    where: { code: 'CS201' },
+    update: {},
+    create: {
       name: 'Data Structures and Algorithms',
       nameLocal: 'Qaab-dhismeedka Xogta iyo Algorithms',
       code: 'CS201',
       credits: 4,
       description: 'Study of data organization and algorithmic problem solving',
+      departmentId: deptCS.id,
     },
-    {
+  });
+
+  const courseCS202 = await prisma.course.upsert({
+    where: { code: 'CS202' },
+    update: {},
+    create: {
+      name: 'Computer Architecture',
+      nameLocal: 'Qaab-dhismeedka Kombuyuutarka',
+      code: 'CS202',
+      credits: 3,
+      description: 'Computer organization and architecture fundamentals',
+      departmentId: deptCS.id,
+    },
+  });
+
+  const courseCS301 = await prisma.course.upsert({
+    where: { code: 'CS301' },
+    update: {},
+    create: {
       name: 'Database Systems',
       nameLocal: 'Nidaamyada Database',
       code: 'CS301',
       credits: 3,
       description: 'Design and implementation of database systems',
+      departmentId: deptCS.id,
     },
+  });
+
+  const courseCS302 = await prisma.course.upsert({
+    where: { code: 'CS302' },
+    update: {},
+    create: {
+      name: 'Software Engineering',
+      nameLocal: 'Injineerinta Software',
+      code: 'CS302',
+      credits: 3,
+      description: 'Software development lifecycle and methodologies',
+      departmentId: deptCS.id,
+    },
+  });
+
+  const courseCS401 = await prisma.course.upsert({
+    where: { code: 'CS401' },
+    update: {},
+    create: {
+      name: 'Advanced Database Systems',
+      nameLocal: 'Nidaamyada Database ee Sare',
+      code: 'CS401',
+      credits: 3,
+      description: 'Advanced topics in database systems including NoSQL',
+      departmentId: deptCS.id,
+    },
+  });
+
+  const courseIT101 = await prisma.course.upsert({
+    where: { code: 'IT101' },
+    update: {},
+    create: {
+      name: 'Introduction to Information Technology',
+      nameLocal: 'Hordhaca IT',
+      code: 'IT101',
+      credits: 3,
+      description: 'Overview of information technology concepts',
+      departmentId: deptIT.id,
+    },
+  });
+
+  const courseIT201 = await prisma.course.upsert({
+    where: { code: 'IT201' },
+    update: {},
+    create: {
+      name: 'Networking Fundamentals',
+      nameLocal: 'Aasaaska Networking',
+      code: 'IT201',
+      credits: 3,
+      description: 'Computer networking basics and protocols',
+      departmentId: deptIT.id,
+    },
+  });
+
+  await prisma.course.upsert({
+    where: { code: 'MGMT101' },
+    update: {},
+    create: {
+      name: 'Principles of Management',
+      nameLocal: 'Mabaadii\'da Maamulka',
+      code: 'MGMT101',
+      credits: 3,
+      description: 'Introduction to management principles and practices',
+      departmentId: deptMgmt.id,
+    },
+  });
+
+  console.info('Created 10 courses');
+
+  // Create Course Prerequisites using the self-referential many-to-many relation
+  // CS102 requires CS101
+  await prisma.course.update({
+    where: { id: courseCS102.id },
+    data: { prerequisites: { connect: [{ id: courseCS101.id }] } },
+  });
+
+  // CS201 requires CS101
+  await prisma.course.update({
+    where: { id: courseCS201.id },
+    data: { prerequisites: { connect: [{ id: courseCS101.id }] } },
+  });
+
+  // CS301 requires CS201
+  await prisma.course.update({
+    where: { id: courseCS301.id },
+    data: { prerequisites: { connect: [{ id: courseCS201.id }] } },
+  });
+
+  // CS302 requires CS201 and CS102
+  await prisma.course.update({
+    where: { id: courseCS302.id },
+    data: { prerequisites: { connect: [{ id: courseCS201.id }, { id: courseCS102.id }] } },
+  });
+
+  // CS401 requires CS301
+  await prisma.course.update({
+    where: { id: courseCS401.id },
+    data: { prerequisites: { connect: [{ id: courseCS301.id }] } },
+  });
+
+  // IT201 requires IT101
+  await prisma.course.update({
+    where: { id: courseIT201.id },
+    data: { prerequisites: { connect: [{ id: courseIT101.id }] } },
+  });
+
+  console.info('Created course prerequisites');
+
+  // Create Curriculum for BSc CS Program
+  const curriculumEntries = [
+    { programId: programBScCS.id, courseId: courseCS101.id, semester: 1, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS102.id, semester: 2, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS201.id, semester: 3, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS202.id, semester: 3, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS301.id, semester: 5, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS302.id, semester: 5, isRequired: true },
+    { programId: programBScCS.id, courseId: courseCS401.id, semester: 7, isRequired: false },
   ];
 
-  for (const courseData of courses) {
-    await prisma.course.upsert({
-      where: { code: courseData.code },
+  for (const entry of curriculumEntries) {
+    await prisma.curriculum.upsert({
+      where: { programId_courseId: { programId: entry.programId, courseId: entry.courseId } },
       update: {},
-      create: {
-        ...courseData,
-        departmentId: department.id,
-      },
+      create: entry,
     });
   }
 
-  console.info(`Created ${courses.length} sample courses`);
+  console.info('Created curriculum for BSc CS program');
+
+  // Keep reference to program for fee structure
+  const program = programBScCS;
 
   // Create Academic Year
   const academicYear = await prisma.academicYear.upsert({
@@ -482,7 +714,7 @@ async function main() {
   console.info(`Created academic year: ${academicYear.name}`);
 
   // Create Semesters
-  const fallSemester = await prisma.semester.upsert({
+  await prisma.semester.upsert({
     where: { id: 'fall-2025' },
     update: {},
     create: {

@@ -1,10 +1,25 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { UserListPage, UserFormPage, UserDetailPage } from '@/pages/admin/users';
 import { RoleListPage, RoleFormPage } from '@/pages/admin/roles';
+import {
+  AcademicDashboard,
+  FacultyListPage,
+  FacultyFormPage,
+  FacultyDetailPage,
+  DepartmentListPage,
+  DepartmentFormPage,
+  DepartmentDetailPage,
+  ProgramListPage,
+  ProgramFormPage,
+  ProgramDetailPage,
+  CourseListPage,
+  CourseFormPage,
+  AcademicCalendarPage,
+} from '@/pages/admin/academic';
 
 function AdminDashboard() {
   return (
@@ -76,6 +91,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/academic">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <GraduationCap className="h-5 w-5" />
+                Academic Structure
+              </CardTitle>
+              <CardDescription>Manage faculties, departments, programs, and courses</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Card className="opacity-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -94,6 +120,7 @@ const navItems = [
   { path: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/roles', label: 'Roles', icon: Shield },
+  { path: '/admin/academic', label: 'Academic', icon: GraduationCap },
 ];
 
 function AdminNav() {
@@ -136,6 +163,24 @@ export function AdminPortal() {
         <Route path="roles" element={<RoleListPage />} />
         <Route path="roles/new" element={<RoleFormPage />} />
         <Route path="roles/:id/edit" element={<RoleFormPage />} />
+        {/* Academic Structure Routes */}
+        <Route path="academic" element={<AcademicDashboard />} />
+        <Route path="academic/faculties" element={<FacultyListPage />} />
+        <Route path="academic/faculties/new" element={<FacultyFormPage />} />
+        <Route path="academic/faculties/:id" element={<FacultyDetailPage />} />
+        <Route path="academic/faculties/:id/edit" element={<FacultyFormPage />} />
+        <Route path="academic/departments" element={<DepartmentListPage />} />
+        <Route path="academic/departments/new" element={<DepartmentFormPage />} />
+        <Route path="academic/departments/:id" element={<DepartmentDetailPage />} />
+        <Route path="academic/departments/:id/edit" element={<DepartmentFormPage />} />
+        <Route path="academic/programs" element={<ProgramListPage />} />
+        <Route path="academic/programs/new" element={<ProgramFormPage />} />
+        <Route path="academic/programs/:id" element={<ProgramDetailPage />} />
+        <Route path="academic/programs/:id/edit" element={<ProgramFormPage />} />
+        <Route path="academic/courses" element={<CourseListPage />} />
+        <Route path="academic/courses/new" element={<CourseFormPage />} />
+        <Route path="academic/courses/:id/edit" element={<CourseFormPage />} />
+        <Route path="academic/calendar" element={<AcademicCalendarPage />} />
       </Routes>
     </div>
   );

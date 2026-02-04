@@ -1,0 +1,13 @@
+export { AcademicDashboard } from './AcademicDashboard';
+export { FacultyListPage } from './FacultyListPage';
+export { FacultyFormPage } from './FacultyFormPage';
+export { FacultyDetailPage } from './FacultyDetailPage';
+export { DepartmentListPage } from './DepartmentListPage';
+export { DepartmentFormPage } from './DepartmentFormPage';
+export { DepartmentDetailPage } from './DepartmentDetailPage';
+export { ProgramListPage } from './ProgramListPage';
+export { ProgramFormPage } from './ProgramFormPage';
+export { ProgramDetailPage } from './ProgramDetailPage';
+export { CourseListPage } from './CourseListPage';
+export { CourseFormPage } from './CourseFormPage';
+export { AcademicCalendarPage } from './AcademicCalendarPage';
