@@ -96,6 +96,7 @@ export const studentQuerySchema = z.object({
 });
 
 export const updateStudentSchema = z.object({
+  userId: z.string().uuid().optional().nullable(),
   dateOfBirth: z.coerce.date().optional(),
   gender: z.string().optional(),
   nationality: z.string().max(100).optional(),

@@ -185,9 +185,12 @@ export class StudentService {
       throw AppError.notFound('Student not found');
     }
 
+    // Extract userId since it's a relation field and shouldn't be passed directly
+    const { userId: _userId, ...updateData } = data;
+
     const updated = await prisma.student.update({
       where: { id },
-      data,
+      data: updateData,
       include: {
         user: {
           select: {

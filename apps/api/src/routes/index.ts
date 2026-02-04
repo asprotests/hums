@@ -15,6 +15,7 @@ import feeStructureRoutes from './feeStructure.routes.js';
 import invoiceRoutes from './invoice.routes.js';
 import paymentRoutes from './payment.routes.js';
 import financeRoutes from './finance.routes.js';
+import studentPortalRoutes from './studentPortal.routes.js';
 
 const router: RouterType = Router();
 
@@ -43,5 +44,8 @@ router.use('/api/v1/fee-structures', feeStructureRoutes);
 router.use('/api/v1/invoices', invoiceRoutes);
 router.use('/api/v1/payments', paymentRoutes);
 router.use('/api/v1/finance', financeRoutes);
+
+// API v1 routes - Student Portal (self-service)
+router.use('/api/v1/student', studentPortalRoutes);
 
 export default router;
