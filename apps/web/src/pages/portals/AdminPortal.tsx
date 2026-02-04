@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -42,6 +42,7 @@ import {
   CollectionReportPage,
   OutstandingReportPage,
 } from '@/pages/admin/finance';
+import { SystemSettingsPage } from '@/pages/admin/settings';
 
 function AdminDashboard() {
   return (
@@ -166,6 +167,17 @@ function AdminDashboard() {
             <CardDescription>View system activity and audit trails (Coming Soon)</CardDescription>
           </CardHeader>
         </Card>
+        <Link to="/admin/settings">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                System Settings
+              </CardTitle>
+              <CardDescription>Configure system settings and branding</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
       </div>
     </div>
   );
@@ -179,6 +191,7 @@ const navItems = [
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
   { path: '/admin/students', label: 'Students', icon: School },
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
+  { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
 function AdminNav() {
@@ -261,6 +274,8 @@ export function AdminPortal() {
         <Route path="finance/reports" element={<CollectionReportPage />} />
         <Route path="finance/reports/collection" element={<CollectionReportPage />} />
         <Route path="finance/reports/outstanding" element={<OutstandingReportPage />} />
+        {/* Settings Routes */}
+        <Route path="settings" element={<SystemSettingsPage />} />
       </Routes>
     </div>
   );

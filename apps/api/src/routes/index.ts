@@ -3,6 +3,7 @@ import healthRoutes from './health.js';
 import authRoutes from './auth.routes.js';
 import userRoutes from './user.routes.js';
 import roleRoutes from './role.routes.js';
+import configRoutes from './config.routes.js';
 import academicYearRoutes from './academicYear.routes.js';
 import semesterRoutes from './semester.routes.js';
 import facultyRoutes from './faculty.routes.js';
@@ -26,6 +27,9 @@ router.use('/health', healthRoutes);
 router.use('/api/v1/auth', authRoutes);
 router.use('/api/v1/users', userRoutes);
 router.use('/api/v1/roles', roleRoutes);
+
+// API v1 routes - System Configuration
+router.use('/api/v1/config', configRoutes);
 
 // API v1 routes - Academic Structure
 router.use('/api/v1/academic-years', academicYearRoutes);
