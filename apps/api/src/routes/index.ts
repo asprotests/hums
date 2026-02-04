@@ -11,6 +11,10 @@ import programRoutes from './program.routes.js';
 import courseRoutes from './course.routes.js';
 import admissionRoutes from './admission.routes.js';
 import studentRoutes from './student.routes.js';
+import feeStructureRoutes from './feeStructure.routes.js';
+import invoiceRoutes from './invoice.routes.js';
+import paymentRoutes from './payment.routes.js';
+import financeRoutes from './finance.routes.js';
 
 const router: RouterType = Router();
 
@@ -33,5 +37,11 @@ router.use('/api/v1/courses', courseRoutes);
 // API v1 routes - Student Management
 router.use('/api/v1/admissions', admissionRoutes);
 router.use('/api/v1/students', studentRoutes);
+
+// API v1 routes - Finance
+router.use('/api/v1/fee-structures', feeStructureRoutes);
+router.use('/api/v1/invoices', invoiceRoutes);
+router.use('/api/v1/payments', paymentRoutes);
+router.use('/api/v1/finance', financeRoutes);
 
 export default router;

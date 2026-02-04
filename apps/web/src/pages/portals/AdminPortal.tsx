@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -30,6 +30,18 @@ import {
   StudentDetailPage,
   StudentEditPage,
 } from '@/pages/admin/students';
+import {
+  FinanceDashboardPage,
+  FeeStructureListPage,
+  FeeStructureFormPage,
+  InvoiceListPage,
+  InvoiceDetailPage,
+  PaymentListPage,
+  PaymentFormPage,
+  PaymentReceiptPage,
+  CollectionReportPage,
+  OutstandingReportPage,
+} from '@/pages/admin/finance';
 
 function AdminDashboard() {
   return (
@@ -134,6 +146,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/finance">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5" />
+                Finance
+              </CardTitle>
+              <CardDescription>Fee structures, invoices, and payments</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Card className="opacity-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -155,6 +178,7 @@ const navItems = [
   { path: '/admin/academic', label: 'Academic', icon: GraduationCap },
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
   { path: '/admin/students', label: 'Students', icon: School },
+  { path: '/admin/finance', label: 'Finance', icon: DollarSign },
 ];
 
 function AdminNav() {
@@ -224,6 +248,19 @@ export function AdminPortal() {
         <Route path="students" element={<StudentListPage />} />
         <Route path="students/:id" element={<StudentDetailPage />} />
         <Route path="students/:id/edit" element={<StudentEditPage />} />
+        {/* Finance Routes */}
+        <Route path="finance" element={<FinanceDashboardPage />} />
+        <Route path="finance/fee-structures" element={<FeeStructureListPage />} />
+        <Route path="finance/fee-structures/new" element={<FeeStructureFormPage />} />
+        <Route path="finance/fee-structures/:id/edit" element={<FeeStructureFormPage />} />
+        <Route path="finance/invoices" element={<InvoiceListPage />} />
+        <Route path="finance/invoices/:id" element={<InvoiceDetailPage />} />
+        <Route path="finance/payments" element={<PaymentListPage />} />
+        <Route path="finance/payments/new" element={<PaymentFormPage />} />
+        <Route path="finance/payments/:id/receipt" element={<PaymentReceiptPage />} />
+        <Route path="finance/reports" element={<CollectionReportPage />} />
+        <Route path="finance/reports/collection" element={<CollectionReportPage />} />
+        <Route path="finance/reports/outstanding" element={<OutstandingReportPage />} />
       </Routes>
     </div>
   );
