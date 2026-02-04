@@ -9,6 +9,8 @@ import facultyRoutes from './faculty.routes.js';
 import departmentRoutes from './department.routes.js';
 import programRoutes from './program.routes.js';
 import courseRoutes from './course.routes.js';
+import admissionRoutes from './admission.routes.js';
+import studentRoutes from './student.routes.js';
 
 const router: RouterType = Router();
 
@@ -28,9 +30,8 @@ router.use('/api/v1/departments', departmentRoutes);
 router.use('/api/v1/programs', programRoutes);
 router.use('/api/v1/courses', courseRoutes);
 
-// Future routes
-// router.use('/api/v1/students', studentRoutes);
-// router.use('/api/v1/employees', employeeRoutes);
-// etc.
+// API v1 routes - Student Management
+router.use('/api/v1/admissions', admissionRoutes);
+router.use('/api/v1/students', studentRoutes);
 
 export default router;

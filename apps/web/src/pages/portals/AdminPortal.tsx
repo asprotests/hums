@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,16 @@ import {
   CourseFormPage,
   AcademicCalendarPage,
 } from '@/pages/admin/academic';
+import {
+  AdmissionListPage,
+  AdmissionFormPage,
+  AdmissionDetailPage,
+} from '@/pages/admin/admissions';
+import {
+  StudentListPage,
+  StudentDetailPage,
+  StudentEditPage,
+} from '@/pages/admin/students';
 
 function AdminDashboard() {
   return (
@@ -102,6 +112,28 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/admissions">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5" />
+                Admissions
+              </CardTitle>
+              <CardDescription>Manage admission applications and enrollment</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link to="/admin/students">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <School className="h-5 w-5" />
+                Students
+              </CardTitle>
+              <CardDescription>View and manage enrolled students</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Card className="opacity-50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -121,6 +153,8 @@ const navItems = [
   { path: '/admin/users', label: 'Users', icon: Users },
   { path: '/admin/roles', label: 'Roles', icon: Shield },
   { path: '/admin/academic', label: 'Academic', icon: GraduationCap },
+  { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
+  { path: '/admin/students', label: 'Students', icon: School },
 ];
 
 function AdminNav() {
@@ -181,6 +215,15 @@ export function AdminPortal() {
         <Route path="academic/courses/new" element={<CourseFormPage />} />
         <Route path="academic/courses/:id/edit" element={<CourseFormPage />} />
         <Route path="academic/calendar" element={<AcademicCalendarPage />} />
+        {/* Admission Routes */}
+        <Route path="admissions" element={<AdmissionListPage />} />
+        <Route path="admissions/new" element={<AdmissionFormPage />} />
+        <Route path="admissions/:id" element={<AdmissionDetailPage />} />
+        <Route path="admissions/:id/edit" element={<AdmissionFormPage />} />
+        {/* Student Routes */}
+        <Route path="students" element={<StudentListPage />} />
+        <Route path="students/:id" element={<StudentDetailPage />} />
+        <Route path="students/:id/edit" element={<StudentEditPage />} />
       </Routes>
     </div>
   );

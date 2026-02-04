@@ -358,6 +358,7 @@ async function main() {
       username: 'admin',
       passwordHash: adminPassword,
       firstName: 'System',
+      middleName: 'Admin',
       lastName: 'Administrator',
       emailVerified: true,
       isActive: true,

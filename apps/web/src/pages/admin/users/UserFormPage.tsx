@@ -24,6 +24,7 @@ export function UserFormPage() {
     username: '',
     password: '',
     firstName: '',
+    middleName: '',
     lastName: '',
     phone: '',
     roleIds: [] as string[],
@@ -59,6 +60,7 @@ export function UserFormPage() {
           username: user.username,
           password: '',
           firstName: user.firstName,
+          middleName: user.middleName || '',
           lastName: user.lastName,
           phone: user.phone || '',
           roleIds: user.roles.map((r) => r.id),
@@ -98,6 +100,7 @@ export function UserFormPage() {
           email: formData.email,
           username: formData.username,
           firstName: formData.firstName,
+          middleName: formData.middleName || undefined,
           lastName: formData.lastName,
           phone: formData.phone || undefined,
           roleIds: formData.roleIds,
@@ -112,6 +115,7 @@ export function UserFormPage() {
           username: formData.username,
           password: formData.password,
           firstName: formData.firstName,
+          middleName: formData.middleName || undefined,
           lastName: formData.lastName,
           phone: formData.phone || undefined,
           roleIds: formData.roleIds,
@@ -172,7 +176,7 @@ export function UserFormPage() {
                 </div>
               )}
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name *</Label>
                   <Input
@@ -181,6 +185,15 @@ export function UserFormPage() {
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                     placeholder="Enter first name"
                     required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="middleName">Middle Name</Label>
+                  <Input
+                    id="middleName"
+                    value={formData.middleName}
+                    onChange={(e) => setFormData({ ...formData, middleName: e.target.value })}
+                    placeholder="Enter middle name"
                   />
                 </div>
                 <div className="space-y-2">

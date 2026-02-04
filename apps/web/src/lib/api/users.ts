@@ -5,6 +5,7 @@ export interface User {
   email: string;
   username: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   phone?: string;
   avatar?: string;
@@ -44,6 +45,7 @@ export interface CreateUserInput {
   username: string;
   password: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   phone?: string;
   roleIds: string[];
@@ -54,6 +56,7 @@ export interface UpdateUserInput {
   username?: string;
   password?: string;
   firstName?: string;
+  middleName?: string;
   lastName?: string;
   phone?: string;
   avatar?: string;
@@ -64,6 +67,7 @@ export interface BulkImportUser {
   email: string;
   username: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   phone?: string;
   role: string;

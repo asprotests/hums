@@ -109,6 +109,23 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum AdmissionStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ENROLLED
+}
+
+enum DocumentType {
+  ID_CARD
+  PASSPORT
+  CERTIFICATE
+  PHOTO
+  TRANSCRIPT
+  OTHER
+}
+
 // ===========================================
 // Core Auth & User Management Models
 // ===========================================
@@ -119,6 +136,7 @@ model User {
   username      String    @unique
   passwordHash  String    @map("password_hash")
   firstName     String    @map("first_name")
+  middleName    String?   @map("middle_name")
   lastName      String    @map("last_name")
   phone         String?
   avatar        String?
@@ -335,10 +353,11 @@ model Program {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  department    Department     @relation(fields: [departmentId], references: [id])
+  department    Department             @relation(fields: [departmentId], references: [id])
   students      Student[]
   curriculum    Curriculum[]
   feeStructures FeeStructure[]
+  admissions    AdmissionApplication[]
 
   @@index([departmentId])
   @@index([code])
@@ -538,14 +557,16 @@ model Student {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id])
-  enrollments Enrollment[]
-  invoices    Invoice[]
-  payments    Payment[]
-  borrowings  Borrowing[]
-  attendances StudentAttendance[]
+  user         User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  program      Program              @relation(fields: [programId], references: [id])
+  enrollments  Enrollment[]
+  invoices     Invoice[]
+  payments     Payment[]
+  borrowings   Borrowing[]
+  attendances  StudentAttendance[]
   scholarships StudentScholarship[]
+  documents    Document[]
+  application  AdmissionApplication?
 
   @@index([studentId])
   @@index([programId])
@@ -623,6 +644,91 @@ model StudentAttendance {
   @@index([classId])
   @@index([date])
   @@map("student_attendances")
+}
+
+model AdmissionApplication {
+  id                   String          @id @default(uuid())
+  applicationNo        String          @unique @map("application_no") // Auto-generated
+  status               AdmissionStatus @default(PENDING)
+
+  // Personal Information
+  firstName            String          @map("first_name")
+  middleName           String?         @map("middle_name")
+  lastName             String          @map("last_name")
+  firstNameLocal       String?         @map("first_name_local") // Somali
+  lastNameLocal        String?         @map("last_name_local")
+  dateOfBirth          DateTime        @map("date_of_birth")
+  gender               String
+  phone                String
+  email                String
+  address              String?
+  city                 String?
+  district             String?
+  nationality          String?         @default("Somali")
+
+  // Emergency Contact
+  emergencyContactName  String?        @map("emergency_contact_name")
+  emergencyContactPhone String?        @map("emergency_contact_phone")
+  emergencyContactRelation String?     @map("emergency_contact_relation")
+
+  // Academic Information
+  previousEducationLevel String        @map("previous_education_level")
+  previousSchoolName     String?       @map("previous_school_name")
+  graduationYear         Int?          @map("graduation_year")
+  programId              String        @map("program_id")
+
+  // Review Information
+  reviewedById         String?         @map("reviewed_by_id")
+  reviewedAt           DateTime?       @map("reviewed_at")
+  reviewRemarks        String?         @map("review_remarks")
+  rejectionReason      String?         @map("rejection_reason")
+
+  // Enrollment Info (after approval)
+  enrolledAt           DateTime?       @map("enrolled_at")
+  studentId            String?         @unique @map("student_id")
+
+  // Timestamps
+  createdAt            DateTime        @default(now()) @map("created_at")
+  updatedAt            DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  program              Program         @relation(fields: [programId], references: [id])
+  student              Student?        @relation(fields: [studentId], references: [id])
+  documents            Document[]
+
+  @@index([applicationNo])
+  @@index([status])
+  @@index([programId])
+  @@index([email])
+  @@map("admission_applications")
+}
+
+model Document {
+  id                  String        @id @default(uuid())
+  type                DocumentType
+  fileName            String        @map("file_name")
+  originalName        String        @map("original_name")
+  mimeType            String        @map("mime_type")
+  size                Int           // File size in bytes
+  path                String        // Storage path
+  url                 String?       // Public URL if applicable
+
+  // Relations - polymorphic (one of these will be set)
+  studentId           String?       @map("student_id")
+  applicationId       String?       @map("application_id")
+
+  // Timestamps
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  student             Student?      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application         AdmissionApplication? @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([applicationId])
+  @@index([type])
+  @@map("documents")
 }
 
 // ===========================================

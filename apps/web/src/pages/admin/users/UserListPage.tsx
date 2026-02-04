@@ -237,7 +237,7 @@ export function UserListPage() {
                     users.map((user) => (
                       <TableRow key={user.id}>
                         <TableCell className="font-medium">
-                          {user.firstName} {user.lastName}
+                          {user.firstName} {user.middleName ? `${user.middleName} ` : ''}{user.lastName}
                         </TableCell>
                         <TableCell>{user.email}</TableCell>
                         <TableCell>{user.username}</TableCell>

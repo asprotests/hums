@@ -111,7 +111,7 @@ export function UserDetailPage() {
           </Button>
           <div>
             <h1 className="text-3xl font-bold">
-              {user.firstName} {user.lastName}
+              {user.firstName} {user.middleName ? `${user.middleName} ` : ''}{user.lastName}
             </h1>
             <p className="text-muted-foreground">User Details</p>
           </div>
@@ -151,7 +151,7 @@ export function UserDetailPage() {
               </div>
               <div>
                 <p className="text-lg font-semibold">
-                  {user.firstName} {user.lastName}
+                  {user.firstName} {user.middleName ? `${user.middleName} ` : ''}{user.lastName}
                 </p>
                 <p className="text-muted-foreground">@{user.username}</p>
               </div>

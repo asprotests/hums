@@ -10,6 +10,7 @@ export interface CreateUserInput {
   username: string;
   password: string;
   firstName: string;
+  middleName?: string;
   lastName: string;
   phone?: string;
   roleIds: string[];
@@ -20,6 +21,7 @@ export interface UpdateUserInput {
   username?: string;
   password?: string;
   firstName?: string;
+  middleName?: string;
   lastName?: string;
   phone?: string;
   avatar?: string;
@@ -83,6 +85,7 @@ export class UserService {
         username: data.username,
         passwordHash,
         firstName: data.firstName,
+        middleName: data.middleName,
         lastName: data.lastName,
         phone: data.phone,
         roles: {
@@ -242,6 +245,7 @@ export class UserService {
     if (data.email) updateData.email = data.email;
     if (data.username) updateData.username = data.username;
     if (data.firstName) updateData.firstName = data.firstName;
+    if (data.middleName !== undefined) updateData.middleName = data.middleName;
     if (data.lastName) updateData.lastName = data.lastName;
     if (data.phone !== undefined) updateData.phone = data.phone;
     if (data.avatar !== undefined) updateData.avatar = data.avatar;
