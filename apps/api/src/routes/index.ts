@@ -18,6 +18,9 @@ import paymentRoutes from './payment.routes.js';
 import financeRoutes from './finance.routes.js';
 import studentPortalRoutes from './studentPortal.routes.js';
 import auditRoutes from './audit.routes.js';
+import roomRoutes from './room.routes.js';
+import classRoutes from './class.routes.js';
+import scheduleRoutes from './schedule.routes.js';
 
 const router: RouterType = Router();
 
@@ -55,5 +58,10 @@ router.use('/api/v1/student', studentPortalRoutes);
 
 // API v1 routes - Audit Logs
 router.use('/api/v1/audit-logs', auditRoutes);
+
+// API v1 routes - Class Management
+router.use('/api/v1/rooms', roomRoutes);
+router.use('/api/v1/classes', classRoutes);
+router.use('/api/v1/schedules', scheduleRoutes);
 
 export default router;

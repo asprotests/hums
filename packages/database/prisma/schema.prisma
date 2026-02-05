@@ -126,6 +126,25 @@ enum DocumentType {
   OTHER
 }
 
+enum RoomType {
+  CLASSROOM
+  LAB
+  AUDITORIUM
+  SEMINAR_ROOM
+}
+
+enum ClassStatus {
+  OPEN
+  CLOSED
+  CANCELLED
+}
+
+enum ScheduleType {
+  LECTURE
+  LAB
+  TUTORIAL
+}
+
 // ===========================================
 // Core Auth & User Management Models
 // ===========================================
@@ -455,12 +474,16 @@ model Semester {
 }
 
 model Room {
-  id       String  @id @default(uuid())
-  name     String  @unique // e.g., "Room 101", "Lab A"
-  building String?
-  capacity Int
-  type     String? // e.g., "Lecture", "Lab", "Seminar"
-  hasAV    Boolean @default(false) @map("has_av") // Audio/Visual equipment
+  id         String   @id @default(uuid())
+  name       String   @unique // e.g., "Room 101", "Lab A"
+  building   String?
+  capacity   Int
+  roomType   RoomType @default(CLASSROOM) @map("room_type")
+  facilities String[] @default([])
+  isActive   Boolean  @default(true) @map("is_active")
+
+  // Soft delete
+  deletedAt DateTime? @map("deleted_at")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -474,13 +497,15 @@ model Room {
 }
 
 model Class {
-  id         String @id @default(uuid())
-  name       String // e.g., "CS101-A"
-  courseId   String @map("course_id")
-  semesterId String @map("semester_id")
-  lecturerId String @map("lecturer_id")
-  capacity   Int
-  roomId     String? @map("room_id")
+  id           String      @id @default(uuid())
+  name         String      // e.g., "CS101-A"
+  courseId     String      @map("course_id")
+  semesterId   String      @map("semester_id")
+  lecturerId   String      @map("lecturer_id")
+  capacity     Int
+  roomId       String?     @map("room_id")
+  status       ClassStatus @default(OPEN)
+  cancelReason String?     @map("cancel_reason")
 
   // Soft delete
   deletedAt DateTime? @map("deleted_at")
@@ -501,16 +526,18 @@ model Class {
   @@index([courseId])
   @@index([semesterId])
   @@index([lecturerId])
+  @@index([status])
   @@map("classes")
 }
 
 model Schedule {
-  id        String @id @default(uuid())
-  classId   String @map("class_id")
-  roomId    String? @map("room_id")
-  dayOfWeek Int    @map("day_of_week") // 0=Sunday, 1=Monday, etc.
-  startTime String @map("start_time") // e.g., "08:00"
-  endTime   String @map("end_time") // e.g., "09:30"
+  id           String       @id @default(uuid())
+  classId      String       @map("class_id")
+  roomId       String?      @map("room_id")
+  dayOfWeek    Int          @map("day_of_week") // 0=Sunday, 1=Monday, etc.
+  startTime    String       @map("start_time") // e.g., "08:00"
+  endTime      String       @map("end_time") // e.g., "09:30"
+  scheduleType ScheduleType @default(LECTURE) @map("schedule_type")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -521,6 +548,7 @@ model Schedule {
   room  Room? @relation(fields: [roomId], references: [id])
 
   @@index([classId])
+  @@index([roomId])
   @@index([dayOfWeek])
   @@map("schedules")
 }
