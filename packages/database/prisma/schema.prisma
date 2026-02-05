@@ -159,6 +159,31 @@ enum ScheduleType {
   TUTORIAL
 }
 
+enum GradeComponentType {
+  MIDTERM
+  FINAL
+  QUIZ
+  ASSIGNMENT
+  PROJECT
+  PARTICIPATION
+  LAB
+  OTHER
+}
+
+enum ExamType {
+  MIDTERM
+  FINAL
+  QUIZ
+  MAKEUP
+}
+
+enum ExamStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
 enum RegistrationPeriodType {
   REGULAR
   LATE
@@ -210,6 +235,9 @@ model User {
   prerequisiteOverrides PrerequisiteOverride[]
   attendanceMarked      StudentAttendance[]    @relation("AttendanceMarker")
   excusesReviewed       AttendanceExcuse[]     @relation("ExcuseReviewer")
+  gradesEntered         GradeEntry[]           @relation("GradeEnteredBy")
+  gradesModified        GradeEntry[]           @relation("GradeModifiedBy")
+  gradesFinalized       Enrollment[]           @relation("GradeFinalizer")
 
   @@index([email])
   @@index([username])
@@ -527,6 +555,7 @@ model Room {
   // Relations
   classes   Class[]
   schedules Schedule[]
+  exams     Exam[]
 
   @@map("rooms")
 }
@@ -550,14 +579,16 @@ model Class {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  course      Course              @relation(fields: [courseId], references: [id])
-  semester    Semester            @relation(fields: [semesterId], references: [id])
-  lecturer    Employee            @relation(fields: [lecturerId], references: [id])
-  room        Room?               @relation(fields: [roomId], references: [id])
-  schedules   Schedule[]
-  enrollments Enrollment[]
-  attendances StudentAttendance[]
-  excuses     AttendanceExcuse[]
+  course          Course              @relation(fields: [courseId], references: [id])
+  semester        Semester            @relation(fields: [semesterId], references: [id])
+  lecturer        Employee            @relation(fields: [lecturerId], references: [id])
+  room            Room?               @relation(fields: [roomId], references: [id])
+  schedules       Schedule[]
+  enrollments     Enrollment[]
+  attendances     StudentAttendance[]
+  excuses         AttendanceExcuse[]
+  gradeComponents GradeComponent[]
+  exams           Exam[]
 
   @@index([courseId])
   @@index([semesterId])
@@ -648,15 +679,25 @@ model Enrollment {
   semesterId String           @map("semester_id")
   status     EnrollmentStatus @default(REGISTERED)
 
+  // Final grade fields
+  finalPercentage Decimal?  @map("final_percentage") @db.Decimal(5, 2)
+  finalGrade      String?   @map("final_grade")
+  gradePoints     Decimal?  @map("grade_points") @db.Decimal(3, 2)
+  isFinalized     Boolean   @default(false) @map("is_finalized")
+  finalizedAt     DateTime? @map("finalized_at")
+  finalizedById   String?   @map("finalized_by_id")
+
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  class    Class    @relation(fields: [classId], references: [id])
-  semester Semester @relation(fields: [semesterId], references: [id])
-  grades   Grade[]
+  student      Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class        Class        @relation(fields: [classId], references: [id])
+  semester     Semester     @relation(fields: [semesterId], references: [id])
+  grades       Grade[]
+  gradeEntries GradeEntry[]
+  finalizedBy  User?        @relation("GradeFinalizer", fields: [finalizedById], references: [id])
 
   @@unique([studentId, classId])
   @@index([studentId])
@@ -763,6 +804,123 @@ model Grade {
   @@index([enrollmentId])
   @@index([type])
   @@map("grades")
+}
+
+// ===========================================
+// Grading System Models
+// ===========================================
+
+model GradeScale {
+  id        String  @id @default(uuid())
+  name      String
+  isDefault Boolean @default(false) @map("is_default")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  grades GradeDefinition[]
+
+  @@map("grade_scales")
+}
+
+model GradeDefinition {
+  id            String  @id @default(uuid())
+  scaleId       String  @map("scale_id")
+  letter        String
+  minPercentage Decimal @map("min_percentage") @db.Decimal(5, 2)
+  maxPercentage Decimal @map("max_percentage") @db.Decimal(5, 2)
+  gradePoints   Decimal @map("grade_points") @db.Decimal(3, 2)
+  description   String?
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  scale GradeScale @relation(fields: [scaleId], references: [id], onDelete: Cascade)
+
+  @@index([scaleId])
+  @@map("grade_definitions")
+}
+
+model GradeComponent {
+  id          String             @id @default(uuid())
+  classId     String             @map("class_id")
+  name        String
+  type        GradeComponentType
+  weight      Decimal            @db.Decimal(5, 2) // Percentage
+  maxScore    Decimal            @map("max_score") @db.Decimal(6, 2)
+  dueDate     DateTime?          @map("due_date")
+  isPublished Boolean            @default(false) @map("is_published")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class   Class        @relation(fields: [classId], references: [id], onDelete: Cascade)
+  entries GradeEntry[]
+
+  @@index([classId])
+  @@map("grade_components")
+}
+
+model GradeEntry {
+  id           String    @id @default(uuid())
+  componentId  String    @map("component_id")
+  enrollmentId String    @map("enrollment_id")
+  score        Decimal   @db.Decimal(6, 2)
+  remarks      String?
+  enteredById  String    @map("entered_by_id")
+  enteredAt    DateTime  @default(now()) @map("entered_at")
+  modifiedById String?   @map("modified_by_id")
+  modifiedAt   DateTime? @map("modified_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  component  GradeComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  enrollment Enrollment     @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  enteredBy  User           @relation("GradeEnteredBy", fields: [enteredById], references: [id])
+  modifiedBy User?          @relation("GradeModifiedBy", fields: [modifiedById], references: [id])
+
+  @@unique([componentId, enrollmentId])
+  @@index([componentId])
+  @@index([enrollmentId])
+  @@map("grade_entries")
+}
+
+model Exam {
+  id           String     @id @default(uuid())
+  classId      String     @map("class_id")
+  type         ExamType
+  title        String
+  date         DateTime   @db.Date
+  startTime    String     @map("start_time")
+  endTime      String     @map("end_time")
+  duration     Int // minutes
+  roomId       String     @map("room_id")
+  maxScore     Decimal    @map("max_score") @db.Decimal(6, 2)
+  instructions String?
+  status       ExamStatus @default(SCHEDULED)
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class Class @relation(fields: [classId], references: [id])
+  room  Room  @relation(fields: [roomId], references: [id])
+
+  @@index([classId])
+  @@index([roomId])
+  @@index([date])
+  @@index([status])
+  @@map("exams")
 }
 
 model StudentAttendance {

@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -61,6 +61,13 @@ import {
   DailyAttendancePage,
   EmployeeAttendanceReportPage,
 } from '@/pages/admin/hr';
+import {
+  ClassGradesPage,
+  GradeComponentFormPage,
+  GradeEntryPage,
+  ExamListPage,
+  ExamFormPage,
+} from '@/pages/admin/grades';
 
 function AdminDashboard() {
   return (
@@ -165,6 +172,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/exams">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Exams
+              </CardTitle>
+              <CardDescription>Schedule and manage exams</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/registration">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -265,6 +283,7 @@ const navItems = [
   { path: '/admin/academic', label: 'Academic', icon: GraduationCap },
   { path: '/admin/rooms', label: 'Rooms', icon: Building2 },
   { path: '/admin/classes', label: 'Classes', icon: BookOpen },
+  { path: '/admin/exams', label: 'Exams', icon: Calendar },
   { path: '/admin/registration', label: 'Registration', icon: ClipboardList },
   { path: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
@@ -342,6 +361,15 @@ export function AdminPortal() {
         <Route path="classes/new" element={<ClassFormPage />} />
         <Route path="classes/:id" element={<ClassDetailPage />} />
         <Route path="classes/:id/edit" element={<ClassFormPage />} />
+        {/* Grading Routes */}
+        <Route path="classes/:classId/grades" element={<ClassGradesPage />} />
+        <Route path="classes/:classId/components/new" element={<GradeComponentFormPage />} />
+        <Route path="grade-components/:componentId/edit" element={<GradeComponentFormPage />} />
+        <Route path="grade-components/:componentId/grades" element={<GradeEntryPage />} />
+        {/* Exam Routes */}
+        <Route path="exams" element={<ExamListPage />} />
+        <Route path="exams/new" element={<ExamFormPage />} />
+        <Route path="exams/:examId/edit" element={<ExamFormPage />} />
         {/* Registration Routes */}
         <Route path="registration" element={<EnrollmentListPage />} />
         <Route path="registration/enrollments" element={<EnrollmentListPage />} />

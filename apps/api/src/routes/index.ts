@@ -26,6 +26,10 @@ import holdRoutes from './hold.routes.js';
 import enrollmentRoutes from './enrollment.routes.js';
 import studentAttendanceRoutes from './studentAttendance.routes.js';
 import employeeAttendanceRoutes from './employeeAttendance.routes.js';
+import gradeScaleRoutes from './gradeScale.routes.js';
+import gradeComponentRoutes from './gradeComponent.routes.js';
+import gradeEntryRoutes from './gradeEntry.routes.js';
+import examRoutes from './exam.routes.js';
 
 const router: RouterType = Router();
 
@@ -77,5 +81,11 @@ router.use('/api/v1/enrollments', enrollmentRoutes);
 // API v1 routes - Attendance
 router.use('/api/v1/attendance', studentAttendanceRoutes);
 router.use('/api/v1/employee-attendance', employeeAttendanceRoutes);
+
+// API v1 routes - Grading System
+router.use('/api/v1/grade-scales', gradeScaleRoutes);
+router.use('/api/v1', gradeComponentRoutes);  // Contains /classes/:classId/components and /grade-components routes
+router.use('/api/v1', gradeEntryRoutes);      // Contains /grade-components/:id/grades, /enrollments/:id/grades, etc.
+router.use('/api/v1/exams', examRoutes);
 
 export default router;
