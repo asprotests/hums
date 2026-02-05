@@ -24,6 +24,8 @@ import scheduleRoutes from './schedule.routes.js';
 import registrationPeriodRoutes from './registrationPeriod.routes.js';
 import holdRoutes from './hold.routes.js';
 import enrollmentRoutes from './enrollment.routes.js';
+import studentAttendanceRoutes from './studentAttendance.routes.js';
+import employeeAttendanceRoutes from './employeeAttendance.routes.js';
 
 const router: RouterType = Router();
 
@@ -71,5 +73,9 @@ router.use('/api/v1/schedules', scheduleRoutes);
 router.use('/api/v1/registration-periods', registrationPeriodRoutes);
 router.use('/api/v1/holds', holdRoutes);
 router.use('/api/v1/enrollments', enrollmentRoutes);
+
+// API v1 routes - Attendance
+router.use('/api/v1/attendance', studentAttendanceRoutes);
+router.use('/api/v1/employee-attendance', employeeAttendanceRoutes);
 
 export default router;

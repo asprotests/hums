@@ -109,6 +109,20 @@ enum AttendanceStatus {
   EXCUSED
 }
 
+enum EmployeeAttendanceStatus {
+  PRESENT
+  ABSENT
+  HALF_DAY
+  ON_LEAVE
+  HOLIDAY
+}
+
+enum ExcuseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum AdmissionStatus {
   PENDING
   UNDER_REVIEW
@@ -194,6 +208,8 @@ model User {
   holdsPlaced           Hold[]                 @relation("HoldPlacer")
   holdsReleased         Hold[]                 @relation("HoldReleaser")
   prerequisiteOverrides PrerequisiteOverride[]
+  attendanceMarked      StudentAttendance[]    @relation("AttendanceMarker")
+  excusesReviewed       AttendanceExcuse[]     @relation("ExcuseReviewer")
 
   @@index([email])
   @@index([username])
@@ -541,6 +557,7 @@ model Class {
   schedules   Schedule[]
   enrollments Enrollment[]
   attendances StudentAttendance[]
+  excuses     AttendanceExcuse[]
 
   @@index([courseId])
   @@index([semesterId])
@@ -611,6 +628,7 @@ model Student {
   payments              Payment[]
   borrowings            Borrowing[]
   attendances           StudentAttendance[]
+  excuses               AttendanceExcuse[]
   scholarships          StudentScholarship[]
   documents             Document[]
   application           AdmissionApplication?
@@ -748,26 +766,60 @@ model Grade {
 }
 
 model StudentAttendance {
-  id        String           @id @default(uuid())
-  studentId String           @map("student_id")
-  classId   String           @map("class_id")
-  date      DateTime
-  status    AttendanceStatus
-  remarks   String?
+  id         String           @id @default(uuid())
+  studentId  String           @map("student_id")
+  classId    String           @map("class_id")
+  date       DateTime         @db.Date
+  status     AttendanceStatus
+  markedById String           @map("marked_by_id")
+  markedAt   DateTime         @default(now()) @map("marked_at")
+  remarks    String?
+  excuseId   String?          @map("excuse_id")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  class   Class   @relation(fields: [classId], references: [id])
+  student  Student           @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class    Class             @relation(fields: [classId], references: [id])
+  markedBy User              @relation("AttendanceMarker", fields: [markedById], references: [id])
+  excuse   AttendanceExcuse? @relation(fields: [excuseId], references: [id])
 
   @@unique([studentId, classId, date])
   @@index([studentId])
   @@index([classId])
   @@index([date])
   @@map("student_attendances")
+}
+
+model AttendanceExcuse {
+  id             String       @id @default(uuid())
+  studentId      String       @map("student_id")
+  classId        String       @map("class_id")
+  date           DateTime     @db.Date
+  reason         String
+  documentUrl    String?      @map("document_url")
+  status         ExcuseStatus @default(PENDING)
+  reviewedById   String?      @map("reviewed_by_id")
+  reviewedAt     DateTime?    @map("reviewed_at")
+  reviewRemarks  String?      @map("review_remarks")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student     Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  class       Class               @relation(fields: [classId], references: [id])
+  reviewedBy  User?               @relation("ExcuseReviewer", fields: [reviewedById], references: [id])
+  attendances StudentAttendance[]
+
+  @@unique([studentId, classId, date])
+  @@index([studentId])
+  @@index([classId])
+  @@index([status])
+  @@map("attendance_excuses")
 }
 
 model AdmissionApplication {
@@ -960,12 +1012,13 @@ model Payroll {
 }
 
 model EmployeeAttendance {
-  id         String           @id @default(uuid())
-  employeeId String           @map("employee_id")
-  date       DateTime
-  checkIn    DateTime?        @map("check_in")
-  checkOut   DateTime?        @map("check_out")
-  status     AttendanceStatus
+  id         String                   @id @default(uuid())
+  employeeId String                   @map("employee_id")
+  date       DateTime                 @db.Date
+  checkIn    DateTime?                @map("check_in")
+  checkOut   DateTime?                @map("check_out")
+  status     EmployeeAttendanceStatus
+  workHours  Decimal?                 @map("work_hours") @db.Decimal(4, 2)
   remarks    String?
 
   // Timestamps

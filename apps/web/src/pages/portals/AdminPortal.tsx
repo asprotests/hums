@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -52,6 +52,15 @@ import {
   HoldListPage,
   EnrollmentListPage,
 } from '@/pages/admin/registration';
+import {
+  AttendanceDashboardPage,
+  MarkAttendancePage,
+  ClassAttendanceReportPage,
+} from '@/pages/admin/attendance';
+import {
+  DailyAttendancePage,
+  EmployeeAttendanceReportPage,
+} from '@/pages/admin/hr';
 
 function AdminDashboard() {
   return (
@@ -167,6 +176,28 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/attendance">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarCheck className="h-5 w-5" />
+                Student Attendance
+              </CardTitle>
+              <CardDescription>Mark and track student class attendance</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link to="/admin/hr">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                HR Attendance
+              </CardTitle>
+              <CardDescription>Employee check-in, check-out, and reports</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/admissions">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -235,8 +266,10 @@ const navItems = [
   { path: '/admin/rooms', label: 'Rooms', icon: Building2 },
   { path: '/admin/classes', label: 'Classes', icon: BookOpen },
   { path: '/admin/registration', label: 'Registration', icon: ClipboardList },
+  { path: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
   { path: '/admin/students', label: 'Students', icon: School },
+  { path: '/admin/hr', label: 'HR', icon: Clock },
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
   { path: '/admin/audit', label: 'Audit', icon: Activity },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
@@ -316,6 +349,14 @@ export function AdminPortal() {
         <Route path="registration/periods/new" element={<RegistrationPeriodFormPage />} />
         <Route path="registration/periods/:id/edit" element={<RegistrationPeriodFormPage />} />
         <Route path="registration/holds" element={<HoldListPage />} />
+        {/* Attendance Routes */}
+        <Route path="attendance" element={<AttendanceDashboardPage />} />
+        <Route path="attendance/class/:classId" element={<ClassAttendanceReportPage />} />
+        <Route path="attendance/class/:classId/mark" element={<MarkAttendancePage />} />
+        {/* HR Routes */}
+        <Route path="hr" element={<DailyAttendancePage />} />
+        <Route path="hr/daily" element={<DailyAttendancePage />} />
+        <Route path="hr/report" element={<EmployeeAttendanceReportPage />} />
         {/* Admission Routes */}
         <Route path="admissions" element={<AdmissionListPage />} />
         <Route path="admissions/new" element={<AdmissionFormPage />} />
