@@ -21,6 +21,9 @@ import auditRoutes from './audit.routes.js';
 import roomRoutes from './room.routes.js';
 import classRoutes from './class.routes.js';
 import scheduleRoutes from './schedule.routes.js';
+import registrationPeriodRoutes from './registrationPeriod.routes.js';
+import holdRoutes from './hold.routes.js';
+import enrollmentRoutes from './enrollment.routes.js';
 
 const router: RouterType = Router();
 
@@ -63,5 +66,10 @@ router.use('/api/v1/audit-logs', auditRoutes);
 router.use('/api/v1/rooms', roomRoutes);
 router.use('/api/v1/classes', classRoutes);
 router.use('/api/v1/schedules', scheduleRoutes);
+
+// API v1 routes - Course Registration
+router.use('/api/v1/registration-periods', registrationPeriodRoutes);
+router.use('/api/v1/holds', holdRoutes);
+router.use('/api/v1/enrollments', enrollmentRoutes);
 
 export default router;

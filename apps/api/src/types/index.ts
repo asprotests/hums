@@ -32,6 +32,8 @@ export interface JwtPayload {
   email: string;
   roles: string[];
   permissions: string[];
+  studentId?: string;
+  employeeId?: string;
 }
 
 export interface TokenPair {

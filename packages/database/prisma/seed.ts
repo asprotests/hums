@@ -748,21 +748,40 @@ async function main() {
   console.info('Created semesters: Fall 2025, Spring 2026');
 
   // Create Sample Rooms
-  const rooms = [
-    { name: 'Room 101', building: 'Main Building', capacity: 40, type: 'Lecture' },
-    { name: 'Room 102', building: 'Main Building', capacity: 35, type: 'Lecture' },
-    { name: 'Lab A', building: 'Science Block', capacity: 25, type: 'Lab', hasAV: true },
-  ];
+  const room101 = await prisma.room.upsert({
+    where: { name: 'Room 101' },
+    update: {},
+    create: {
+      name: 'Room 101',
+      building: 'Main Building',
+      capacity: 40,
+      roomType: 'CLASSROOM',
+    },
+  });
 
-  for (const roomData of rooms) {
-    await prisma.room.upsert({
-      where: { name: roomData.name },
-      update: {},
-      create: roomData,
-    });
-  }
+  await prisma.room.upsert({
+    where: { name: 'Room 102' },
+    update: {},
+    create: {
+      name: 'Room 102',
+      building: 'Main Building',
+      capacity: 35,
+      roomType: 'CLASSROOM',
+    },
+  });
 
-  console.info(`Created ${rooms.length} rooms`);
+  await prisma.room.upsert({
+    where: { name: 'Lab A' },
+    update: {},
+    create: {
+      name: 'Lab A',
+      building: 'Science Block',
+      capacity: 25,
+      roomType: 'LAB',
+    },
+  });
+
+  console.info('Created 3 rooms');
 
   // Create Book Categories
   const bookCategories = [
@@ -837,12 +856,412 @@ async function main() {
 
   console.info(`Created ${systemConfigs.length} system configurations`);
 
+  // ===========================================
+  // Create Test Lecturer
+  // ===========================================
+  const lecturerPassword = await bcrypt.hash('Lecturer123!', 12);
+  const lecturerUser = await prisma.user.upsert({
+    where: { email: 'lecturer@hormuud.edu.so' },
+    update: {},
+    create: {
+      email: 'lecturer@hormuud.edu.so',
+      username: 'lecturer1',
+      passwordHash: lecturerPassword,
+      firstName: 'Ahmed',
+      lastName: 'Mohamed',
+      emailVerified: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: lecturerUser.id,
+        roleId: createdRoles.LECTURER,
+      },
+    },
+    update: {},
+    create: {
+      userId: lecturerUser.id,
+      roleId: createdRoles.LECTURER,
+    },
+  });
+
+  const lecturer = await prisma.employee.upsert({
+    where: { employeeId: 'EMP001' },
+    update: {},
+    create: {
+      employeeId: 'EMP001',
+      userId: lecturerUser.id,
+      departmentId: deptCS.id,
+      position: 'Senior Lecturer',
+      employmentType: 'FULL_TIME',
+      hireDate: new Date('2020-01-15'),
+      salary: 2500,
+    },
+  });
+
+  console.info('Created test lecturer: lecturer@hormuud.edu.so (password: Lecturer123!)');
+
+  // ===========================================
+  // Create Test Students
+  // ===========================================
+  const studentPassword = await bcrypt.hash('Student123!', 12);
+
+  // Student 1: Has completed CS101 (can register for CS201, CS102)
+  const student1User = await prisma.user.upsert({
+    where: { email: 'student1@hormuud.edu.so' },
+    update: {},
+    create: {
+      email: 'student1@hormuud.edu.so',
+      username: 'student1',
+      passwordHash: studentPassword,
+      firstName: 'Ali',
+      lastName: 'Hassan',
+      emailVerified: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: student1User.id,
+        roleId: createdRoles.STUDENT,
+      },
+    },
+    update: {},
+    create: {
+      userId: student1User.id,
+      roleId: createdRoles.STUDENT,
+    },
+  });
+
+  const student1 = await prisma.student.upsert({
+    where: { studentId: 'STU001' },
+    update: {},
+    create: {
+      studentId: 'STU001',
+      userId: student1User.id,
+      programId: programBScCS.id,
+      admissionDate: new Date('2024-09-01'),
+      currentSemester: 3,
+      status: 'ACTIVE',
+    },
+  });
+
+  // Student 2: New student (has not completed any courses)
+  const student2User = await prisma.user.upsert({
+    where: { email: 'student2@hormuud.edu.so' },
+    update: {},
+    create: {
+      email: 'student2@hormuud.edu.so',
+      username: 'student2',
+      passwordHash: studentPassword,
+      firstName: 'Fatima',
+      lastName: 'Abdi',
+      emailVerified: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: student2User.id,
+        roleId: createdRoles.STUDENT,
+      },
+    },
+    update: {},
+    create: {
+      userId: student2User.id,
+      roleId: createdRoles.STUDENT,
+    },
+  });
+
+  const student2 = await prisma.student.upsert({
+    where: { studentId: 'STU002' },
+    update: {},
+    create: {
+      studentId: 'STU002',
+      userId: student2User.id,
+      programId: programBScCS.id,
+      admissionDate: new Date('2025-09-01'),
+      currentSemester: 1,
+      status: 'ACTIVE',
+    },
+  });
+
+  // Student 3: Student with financial hold
+  const student3User = await prisma.user.upsert({
+    where: { email: 'student3@hormuud.edu.so' },
+    update: {},
+    create: {
+      email: 'student3@hormuud.edu.so',
+      username: 'student3',
+      passwordHash: studentPassword,
+      firstName: 'Omar',
+      lastName: 'Yusuf',
+      emailVerified: true,
+      isActive: true,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: student3User.id,
+        roleId: createdRoles.STUDENT,
+      },
+    },
+    update: {},
+    create: {
+      userId: student3User.id,
+      roleId: createdRoles.STUDENT,
+    },
+  });
+
+  const student3 = await prisma.student.upsert({
+    where: { studentId: 'STU003' },
+    update: {},
+    create: {
+      studentId: 'STU003',
+      userId: student3User.id,
+      programId: programBScCS.id,
+      admissionDate: new Date('2024-09-01'),
+      currentSemester: 2,
+      status: 'ACTIVE',
+    },
+  });
+
+  console.info('Created 3 test students: student1@hormuud.edu.so, student2@hormuud.edu.so, student3@hormuud.edu.so (password: Student123!)');
+
+  // ===========================================
+  // Create Classes for Fall 2025
+  // ===========================================
+  // Helper to find or create class
+  const findOrCreateClass = async (data: {
+    name: string;
+    courseId: string;
+    semesterId: string;
+    lecturerId: string;
+    capacity: number;
+    status: 'OPEN' | 'CLOSED';
+    roomId?: string;
+  }) => {
+    let cls = await prisma.class.findFirst({
+      where: { name: data.name, semesterId: data.semesterId },
+    });
+    if (!cls) {
+      cls = await prisma.class.create({ data });
+    }
+    return cls;
+  };
+
+  const classCS101A = await findOrCreateClass({
+    name: 'CS101-A',
+    courseId: courseCS101.id,
+    semesterId: 'fall-2025',
+    lecturerId: lecturer.id,
+    capacity: 30,
+    status: 'OPEN',
+    roomId: room101?.id,
+  });
+
+  const classCS102A = await findOrCreateClass({
+    name: 'CS102-A',
+    courseId: courseCS102.id,
+    semesterId: 'fall-2025',
+    lecturerId: lecturer.id,
+    capacity: 30,
+    status: 'OPEN',
+    roomId: room101?.id,
+  });
+
+  const classCS201A = await findOrCreateClass({
+    name: 'CS201-A',
+    courseId: courseCS201.id,
+    semesterId: 'fall-2025',
+    lecturerId: lecturer.id,
+    capacity: 25,
+    status: 'OPEN',
+    roomId: room101?.id,
+  });
+
+  const classCS301A = await findOrCreateClass({
+    name: 'CS301-A',
+    courseId: courseCS301.id,
+    semesterId: 'fall-2025',
+    lecturerId: lecturer.id,
+    capacity: 20,
+    status: 'OPEN',
+    roomId: room101?.id,
+  });
+
+  // Small capacity class for testing capacity enforcement
+  const classIT101A = await findOrCreateClass({
+    name: 'IT101-A',
+    courseId: courseIT101.id,
+    semesterId: 'fall-2025',
+    lecturerId: lecturer.id,
+    capacity: 2, // Small capacity for testing
+    status: 'OPEN',
+    roomId: room101?.id,
+  });
+
+  console.info('Created 5 classes for Fall 2025');
+
+  // ===========================================
+  // Create Class Schedules (for conflict testing)
+  // ===========================================
+  // Helper to find or create schedule
+  const findOrCreateSchedule = async (data: {
+    classId: string;
+    dayOfWeek: number;
+    startTime: string;
+    endTime: string;
+    scheduleType: 'LECTURE' | 'LAB' | 'TUTORIAL' | 'EXAM';
+    roomId?: string;
+  }) => {
+    let schedule = await prisma.schedule.findFirst({
+      where: { classId: data.classId, dayOfWeek: data.dayOfWeek, startTime: data.startTime },
+    });
+    if (!schedule) {
+      schedule = await prisma.schedule.create({ data });
+    }
+    return schedule;
+  };
+
+  await findOrCreateSchedule({
+    classId: classCS101A.id,
+    dayOfWeek: 1, // Monday
+    startTime: '09:00',
+    endTime: '10:30',
+    scheduleType: 'LECTURE',
+    roomId: room101?.id,
+  });
+
+  await findOrCreateSchedule({
+    classId: classCS101A.id,
+    dayOfWeek: 3, // Wednesday
+    startTime: '09:00',
+    endTime: '10:30',
+    scheduleType: 'LECTURE',
+    roomId: room101?.id,
+  });
+
+  // CS102 overlaps with CS101 on Monday (for conflict testing)
+  await findOrCreateSchedule({
+    classId: classCS102A.id,
+    dayOfWeek: 1, // Monday - overlaps with CS101
+    startTime: '10:00',
+    endTime: '11:30',
+    scheduleType: 'LECTURE',
+    roomId: room101?.id,
+  });
+
+  await findOrCreateSchedule({
+    classId: classCS201A.id,
+    dayOfWeek: 2, // Tuesday
+    startTime: '14:00',
+    endTime: '15:30',
+    scheduleType: 'LECTURE',
+    roomId: room101?.id,
+  });
+
+  await findOrCreateSchedule({
+    classId: classIT101A.id,
+    dayOfWeek: 2, // Tuesday
+    startTime: '14:00', // Same time as CS201 for conflict testing
+    endTime: '15:30',
+    scheduleType: 'LECTURE',
+    roomId: room101?.id,
+  });
+
+  console.info('Created class schedules');
+
+  // ===========================================
+  // Create Registration Period for Fall 2025
+  // ===========================================
+  let regPeriod = await prisma.registrationPeriod.findFirst({
+    where: { semesterId: 'fall-2025', type: 'REGULAR' },
+  });
+  if (!regPeriod) {
+    regPeriod = await prisma.registrationPeriod.create({
+      data: {
+        semesterId: 'fall-2025',
+        type: 'REGULAR',
+        startDate: new Date('2025-08-15'),
+        endDate: new Date('2027-12-31'), // Extended for testing
+        isActive: true,
+      },
+    });
+  }
+
+  console.info('Created registration period for Fall 2025');
+
+  // ===========================================
+  // Create Student1's Completed Enrollment (CS101)
+  // This allows Student1 to register for CS102 and CS201
+  // ===========================================
+  // Create a previous class for CS101 (previous semester)
+  const prevClassCS101 = await findOrCreateClass({
+    name: 'CS101-Prev',
+    courseId: courseCS101.id,
+    semesterId: 'fall-2025', // Using same semester for simplicity
+    lecturerId: lecturer.id,
+    capacity: 30,
+    status: 'CLOSED',
+  });
+
+  let enrollment1 = await prisma.enrollment.findFirst({
+    where: { studentId: student1.id, classId: prevClassCS101.id },
+  });
+  if (!enrollment1) {
+    enrollment1 = await prisma.enrollment.create({
+      data: {
+        studentId: student1.id,
+        classId: prevClassCS101.id,
+        semesterId: 'fall-2025',
+        status: 'COMPLETED', // Student1 completed CS101
+      },
+    });
+  }
+
+  console.info('Created completed CS101 enrollment for Student1');
+
+  // ===========================================
+  // Create Financial Hold for Student3
+  // ===========================================
+  let hold3 = await prisma.hold.findFirst({
+    where: { studentId: student3.id, type: 'FINANCIAL', releasedAt: null },
+  });
+  if (!hold3) {
+    hold3 = await prisma.hold.create({
+      data: {
+        studentId: student3.id,
+        type: 'FINANCIAL',
+        reason: 'Unpaid tuition fees for Fall 2024',
+        placedById: adminUser.id,
+        blocksRegistration: true,
+        blocksGrades: false,
+        blocksTranscript: true,
+      },
+    });
+  }
+
+  console.info('Created financial hold for Student3');
+
   console.info('\n========================================');
   console.info('Seeding completed successfully!');
   console.info('========================================');
-  console.info('\nDefault Login:');
-  console.info('  Email: admin@hormuud.edu.so');
-  console.info('  Password: Admin123!');
+  console.info('\nTest Accounts:');
+  console.info('  Admin: admin@hormuud.edu.so / Admin123!');
+  console.info('  Lecturer: lecturer@hormuud.edu.so / Lecturer123!');
+  console.info('  Student1 (completed CS101): student1@hormuud.edu.so / Student123!');
+  console.info('  Student2 (new student): student2@hormuud.edu.so / Student123!');
+  console.info('  Student3 (has hold): student3@hormuud.edu.so / Student123!');
   console.info('========================================\n');
 }
 

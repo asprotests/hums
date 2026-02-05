@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -46,6 +46,12 @@ import { SystemSettingsPage } from '@/pages/admin/settings';
 import { AuditLogPage } from '@/pages/admin/audit';
 import { RoomListPage, RoomFormPage } from '@/pages/admin/rooms';
 import { ClassListPage, ClassFormPage, ClassDetailPage } from '@/pages/admin/classes';
+import {
+  RegistrationPeriodListPage,
+  RegistrationPeriodFormPage,
+  HoldListPage,
+  EnrollmentListPage,
+} from '@/pages/admin/registration';
 
 function AdminDashboard() {
   return (
@@ -150,6 +156,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/registration">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ClipboardList className="h-5 w-5" />
+                Registration
+              </CardTitle>
+              <CardDescription>Manage registration periods, holds, and enrollments</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/admissions">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -217,6 +234,7 @@ const navItems = [
   { path: '/admin/academic', label: 'Academic', icon: GraduationCap },
   { path: '/admin/rooms', label: 'Rooms', icon: Building2 },
   { path: '/admin/classes', label: 'Classes', icon: BookOpen },
+  { path: '/admin/registration', label: 'Registration', icon: ClipboardList },
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
   { path: '/admin/students', label: 'Students', icon: School },
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
@@ -291,6 +309,13 @@ export function AdminPortal() {
         <Route path="classes/new" element={<ClassFormPage />} />
         <Route path="classes/:id" element={<ClassDetailPage />} />
         <Route path="classes/:id/edit" element={<ClassFormPage />} />
+        {/* Registration Routes */}
+        <Route path="registration" element={<EnrollmentListPage />} />
+        <Route path="registration/enrollments" element={<EnrollmentListPage />} />
+        <Route path="registration/periods" element={<RegistrationPeriodListPage />} />
+        <Route path="registration/periods/new" element={<RegistrationPeriodFormPage />} />
+        <Route path="registration/periods/:id/edit" element={<RegistrationPeriodFormPage />} />
+        <Route path="registration/holds" element={<HoldListPage />} />
         {/* Admission Routes */}
         <Route path="admissions" element={<AdmissionListPage />} />
         <Route path="admissions/new" element={<AdmissionFormPage />} />
