@@ -74,14 +74,34 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Auth endpoints that should NOT trigger token refresh on 401
+const AUTH_ENDPOINTS = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password', '/auth/refresh'];
+
 // Response interceptor - handle token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-    // If error is not 401 or request already retried, reject
+    // Check if this is an auth endpoint - these should never trigger token refresh
+    const requestUrl = originalRequest?.url || '';
+    const isAuthEndpoint = AUTH_ENDPOINTS.some(endpoint => requestUrl.includes(endpoint));
+
+    // For auth endpoints, always reject immediately without any redirect
+    if (isAuthEndpoint) {
+      return Promise.reject(error);
+    }
+
+    // For non-401 errors or already retried requests, reject immediately
     if (error.response?.status !== 401 || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // No refresh token available - redirect to login
+    const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) {
+      tokenStorage.clearTokens();
+      window.location.href = '/login';
       return Promise.reject(error);
     }
 
@@ -101,14 +121,6 @@ api.interceptors.response.use(
 
     originalRequest._retry = true;
     isRefreshing = true;
-
-    const refreshToken = tokenStorage.getRefreshToken();
-
-    if (!refreshToken) {
-      tokenStorage.clearTokens();
-      window.location.href = '/login';
-      return Promise.reject(error);
-    }
 
     try {
       const response = await axios.post(`${API_URL}/api/v1/auth/refresh`, {
@@ -171,11 +183,20 @@ export interface LoginResponse {
 // Auth API functions
 export const authApi = {
   login: async (email: string, password: string): Promise<ApiResponse<LoginResponse>> => {
-    const response = await api.post<ApiResponse<LoginResponse>>('/api/v1/auth/login', {
-      email,
-      password,
-    });
-    return response.data;
+    try {
+      const response = await api.post<ApiResponse<LoginResponse>>('/api/v1/auth/login', {
+        email,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      // Extract error message from API response
+      if (axios.isAxiosError(error) && error.response?.data) {
+        const apiError = error.response.data as ApiResponse;
+        throw new Error(apiError.message || 'Invalid email or password');
+      }
+      throw new Error('Login failed. Please try again.');
+    }
   },
 
   logout: async (): Promise<ApiResponse<null>> => {

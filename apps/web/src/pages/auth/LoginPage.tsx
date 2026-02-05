@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { Button } from '../../components/ui/button';
@@ -16,8 +16,13 @@ export function LoginPage() {
 
   const from = (location.state as { from?: Location })?.from?.pathname || '/';
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+
+    // Don't submit if already loading
+    if (isLoading) return;
+
     setError('');
     setIsLoading(true);
 
@@ -27,10 +32,9 @@ export function LoginPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed. Please try again.';
       setError(message);
-    } finally {
       setIsLoading(false);
     }
-  };
+  }, [email, password, isLoading, login, navigate, from]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
