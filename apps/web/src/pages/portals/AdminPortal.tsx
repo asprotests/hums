@@ -43,6 +43,7 @@ import {
   OutstandingReportPage,
 } from '@/pages/admin/finance';
 import { SystemSettingsPage } from '@/pages/admin/settings';
+import { AuditLogPage } from '@/pages/admin/audit';
 
 function AdminDashboard() {
   return (
@@ -158,15 +159,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
-        <Card className="opacity-50">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Audit Logs
-            </CardTitle>
-            <CardDescription>View system activity and audit trails (Coming Soon)</CardDescription>
-          </CardHeader>
-        </Card>
+        <Link to="/admin/audit">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Audit Logs
+              </CardTitle>
+              <CardDescription>View system activity and audit trails</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/settings">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -191,6 +194,7 @@ const navItems = [
   { path: '/admin/admissions', label: 'Admissions', icon: UserPlus },
   { path: '/admin/students', label: 'Students', icon: School },
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
+  { path: '/admin/audit', label: 'Audit', icon: Activity },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -274,6 +278,8 @@ export function AdminPortal() {
         <Route path="finance/reports" element={<CollectionReportPage />} />
         <Route path="finance/reports/collection" element={<CollectionReportPage />} />
         <Route path="finance/reports/outstanding" element={<OutstandingReportPage />} />
+        {/* Audit Routes */}
+        <Route path="audit" element={<AuditLogPage />} />
         {/* Settings Routes */}
         <Route path="settings" element={<SystemSettingsPage />} />
       </Routes>
