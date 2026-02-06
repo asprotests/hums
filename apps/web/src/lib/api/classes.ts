@@ -43,6 +43,7 @@ export interface ClassEntity {
     capacity: number;
   };
   schedules?: Schedule[];
+  enrollments?: ClassStudent[];
   createdAt: string;
   updatedAt: string;
 }
@@ -125,6 +126,20 @@ interface PaginatedApiResponse {
 // ============ Class API ============
 
 export const classesApi = {
+  // Lecturer-specific endpoints
+  getMyClasses: async (semesterId?: string): Promise<ApiResponse<ClassEntity[]>> => {
+    const params = new URLSearchParams();
+    if (semesterId) params.append('semesterId', semesterId);
+    const response = await api.get<ApiResponse<ClassEntity[]>>(`/api/v1/lecturer/classes?${params.toString()}`);
+    return response.data;
+  },
+
+  getClass: async (id: string): Promise<ApiResponse<ClassEntity>> => {
+    const response = await api.get<ApiResponse<ClassEntity>>(`/api/v1/lecturer/classes/${id}`);
+    return response.data;
+  },
+
+  // Admin endpoints
   getClasses: async (filters: ClassFilters = {}): Promise<ApiResponse<PaginatedClasses>> => {
     const params = new URLSearchParams();
     if (filters.page) params.append('page', String(filters.page));

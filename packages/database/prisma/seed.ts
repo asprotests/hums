@@ -32,6 +32,10 @@ async function main() {
     'audit',
     'reports',
     'settings',
+    'lecturer',
+    'materials',
+    'hod',
+    'dean',
   ];
 
   const actions = ['create', 'read', 'update', 'delete'];
@@ -196,6 +200,11 @@ async function main() {
     'attendance:update',
     'courses:read',
     'announcements:read',
+    'lecturer:read',
+    'materials:create',
+    'materials:read',
+    'materials:update',
+    'materials:delete',
   ];
   for (const permName of lecturerPerms) {
     const permId = permissionMap.get(permName);
@@ -227,6 +236,7 @@ async function main() {
     'books:read',
     'borrowings:read',
     'announcements:read',
+    'materials:read',
   ];
   for (const permName of studentPerms) {
     const permId = permissionMap.get(permName);

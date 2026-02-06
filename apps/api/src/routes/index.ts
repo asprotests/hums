@@ -30,6 +30,10 @@ import gradeScaleRoutes from './gradeScale.routes.js';
 import gradeComponentRoutes from './gradeComponent.routes.js';
 import gradeEntryRoutes from './gradeEntry.routes.js';
 import examRoutes from './exam.routes.js';
+import lecturerRoutes from './lecturer.routes.js';
+import courseMaterialsRoutes from './courseMaterials.routes.js';
+import hodRoutes from './hod.routes.js';
+import deanRoutes from './dean.routes.js';
 
 const router: RouterType = Router();
 
@@ -87,5 +91,11 @@ router.use('/api/v1/grade-scales', gradeScaleRoutes);
 router.use('/api/v1', gradeComponentRoutes);  // Contains /classes/:classId/components and /grade-components routes
 router.use('/api/v1', gradeEntryRoutes);      // Contains /grade-components/:id/grades, /enrollments/:id/grades, etc.
 router.use('/api/v1/exams', examRoutes);
+
+// API v1 routes - Academic Portal
+router.use('/api/v1/lecturer', lecturerRoutes);
+router.use('/api/v1', courseMaterialsRoutes);  // Contains /classes/:classId/materials and /materials routes
+router.use('/api/v1/hod', hodRoutes);
+router.use('/api/v1/dean', deanRoutes);
 
 export default router;

@@ -198,6 +198,16 @@ enum HoldType {
   ADMINISTRATIVE
 }
 
+enum MaterialType {
+  DOCUMENT
+  VIDEO
+  LINK
+  SLIDES
+  SYLLABUS
+  ASSIGNMENT
+  OTHER
+}
+
 // ===========================================
 // Core Auth & User Management Models
 // ===========================================
@@ -238,6 +248,7 @@ model User {
   gradesEntered         GradeEntry[]           @relation("GradeEnteredBy")
   gradesModified        GradeEntry[]           @relation("GradeModifiedBy")
   gradesFinalized       Enrollment[]           @relation("GradeFinalizer")
+  uploadedMaterials     CourseMaterial[]
 
   @@index([email])
   @@index([username])
@@ -589,6 +600,7 @@ model Class {
   excuses         AttendanceExcuse[]
   gradeComponents GradeComponent[]
   exams           Exam[]
+  materials       CourseMaterial[]
 
   @@index([courseId])
   @@index([semesterId])
@@ -618,6 +630,39 @@ model Schedule {
   @@index([roomId])
   @@index([dayOfWeek])
   @@map("schedules")
+}
+
+model CourseMaterial {
+  id           String       @id @default(uuid())
+  classId      String       @map("class_id")
+  title        String
+  description  String?
+  type         MaterialType
+  fileUrl      String?      @map("file_url")
+  externalUrl  String?      @map("external_url")
+  fileSize     Int?         @map("file_size")
+  mimeType     String?      @map("mime_type")
+  week         Int?
+  orderIndex   Int          @default(0) @map("order_index")
+  isPublished  Boolean      @default(false) @map("is_published")
+  publishedAt  DateTime?    @map("published_at")
+  uploadedById String       @map("uploaded_by_id")
+
+  // Soft delete
+  deletedAt DateTime? @map("deleted_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  class      Class @relation(fields: [classId], references: [id], onDelete: Cascade)
+  uploadedBy User  @relation(fields: [uploadedById], references: [id])
+
+  @@index([classId])
+  @@index([week])
+  @@index([isPublished])
+  @@map("course_materials")
 }
 
 // ===========================================
