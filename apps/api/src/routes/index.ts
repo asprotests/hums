@@ -34,6 +34,11 @@ import lecturerRoutes from './lecturer.routes.js';
 import courseMaterialsRoutes from './courseMaterials.routes.js';
 import hodRoutes from './hod.routes.js';
 import deanRoutes from './dean.routes.js';
+import leaveTypeRoutes from './leaveType.routes.js';
+import leaveRequestRoutes from './leaveRequest.routes.js';
+import salaryComponentRoutes from './salaryComponent.routes.js';
+import payrollRoutes from './payroll.routes.js';
+import employeePortalRoutes from './employeePortal.routes.js';
 
 const router: RouterType = Router();
 
@@ -97,5 +102,14 @@ router.use('/api/v1/lecturer', lecturerRoutes);
 router.use('/api/v1', courseMaterialsRoutes);  // Contains /classes/:classId/materials and /materials routes
 router.use('/api/v1/hod', hodRoutes);
 router.use('/api/v1/dean', deanRoutes);
+
+// API v1 routes - Leave Management
+router.use('/api/v1/leave-types', leaveTypeRoutes);
+router.use('/api/v1/leave-requests', leaveRequestRoutes);
+router.use('/api/v1/salary-components', salaryComponentRoutes);
+router.use('/api/v1/payroll', payrollRoutes);
+
+// API v1 routes - Employee Portal (self-service)
+router.use('/api/v1/employee', employeePortalRoutes);
 
 export default router;

@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar, Briefcase, CreditCard } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -60,6 +60,14 @@ import {
 import {
   DailyAttendancePage,
   EmployeeAttendanceReportPage,
+  LeaveTypesPage,
+  LeaveRequestsPage,
+  LeaveBalancesPage,
+  LeaveCalendarPage,
+  SalaryComponentsPage,
+  PayrollProcessPage,
+  PayrollListPage,
+  PayslipPage,
 } from '@/pages/admin/hr';
 import {
   ClassGradesPage,
@@ -213,6 +221,28 @@ function AdminDashboard() {
                 HR Attendance
               </CardTitle>
               <CardDescription>Employee check-in, check-out, and reports</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link to="/admin/hr/leave">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Briefcase className="h-5 w-5" />
+                Leave Management
+              </CardTitle>
+              <CardDescription>Leave types, requests, and approvals</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+        <Link to="/admin/hr/payroll">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="h-5 w-5" />
+                Payroll
+              </CardTitle>
+              <CardDescription>Process payroll and manage salary components</CardDescription>
             </CardHeader>
           </Card>
         </Link>
@@ -385,6 +415,17 @@ export function AdminPortal() {
         <Route path="hr" element={<DailyAttendancePage />} />
         <Route path="hr/daily" element={<DailyAttendancePage />} />
         <Route path="hr/report" element={<EmployeeAttendanceReportPage />} />
+        {/* HR Leave Management Routes */}
+        <Route path="hr/leave" element={<LeaveRequestsPage />} />
+        <Route path="hr/leave/requests" element={<LeaveRequestsPage />} />
+        <Route path="hr/leave/types" element={<LeaveTypesPage />} />
+        <Route path="hr/leave/balances" element={<LeaveBalancesPage />} />
+        <Route path="hr/leave/calendar" element={<LeaveCalendarPage />} />
+        {/* HR Payroll Routes */}
+        <Route path="hr/payroll" element={<PayrollListPage />} />
+        <Route path="hr/payroll/process" element={<PayrollProcessPage />} />
+        <Route path="hr/payroll/:id" element={<PayslipPage />} />
+        <Route path="hr/salary-components" element={<SalaryComponentsPage />} />
         {/* Admission Routes */}
         <Route path="admissions" element={<AdmissionListPage />} />
         <Route path="admissions/new" element={<AdmissionFormPage />} />
