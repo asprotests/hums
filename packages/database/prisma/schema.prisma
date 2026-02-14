@@ -107,6 +107,31 @@ enum BorrowingStatus {
   BORROWED
   RETURNED
   OVERDUE
+  LOST
+}
+
+enum CopyCondition {
+  NEW
+  GOOD
+  FAIR
+  POOR
+  DAMAGED
+}
+
+enum CopyStatus {
+  AVAILABLE
+  BORROWED
+  RESERVED
+  MAINTENANCE
+  LOST
+  RETIRED
+}
+
+enum BookStatus {
+  AVAILABLE
+  LOW_STOCK
+  OUT_OF_STOCK
+  DISCONTINUED
 }
 
 enum AnnouncementType {
@@ -1572,6 +1597,8 @@ model BookCategory {
   id          String  @id @default(uuid())
   name        String  @unique
   nameLocal   String? @map("name_local")
+  code        String  @unique // e.g., "CS", "BUS", "MED"
+  parentId    String? @map("parent_id")
   description String?
 
   // Timestamps
@@ -1579,17 +1606,22 @@ model BookCategory {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  books Book[]
+  parent   BookCategory?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children BookCategory[] @relation("CategoryHierarchy")
+  books    Book[]
 
+  @@index([parentId])
   @@map("book_categories")
 }
 
 model LibraryLocation {
   id        String  @id @default(uuid())
-  name      String  @unique // e.g., "Floor 1 - Section A"
+  name      String  @unique // e.g., "Main Library", "CS Reading Room"
+  building  String?
   floor     String?
-  section   String?
-  shelfCode String? @map("shelf_code")
+  section   String? // e.g., "A1", "B2"
+  capacity  Int?    // Shelf capacity
+  isActive  Boolean @default(true) @map("is_active")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1602,19 +1634,26 @@ model LibraryLocation {
 }
 
 model Book {
-  id              String  @id @default(uuid())
-  isbn            String? @unique
+  id              String     @id @default(uuid())
+  isbn            String?    @unique
   title           String
-  titleLocal      String? @map("title_local")
+  titleLocal      String?    @map("title_local")
   author          String
+  coAuthors       String[]   @map("co_authors")
   publisher       String?
-  publishYear     Int?    @map("publish_year")
-  categoryId      String  @map("category_id")
-  locationId      String? @map("location_id")
-  totalCopies     Int     @default(1) @map("total_copies")
-  availableCopies Int     @default(1) @map("available_copies")
-  language        String?
+  publishYear     Int?       @map("publish_year")
+  edition         String?
+  language        String     @default("English")
+  pages           Int?
+  categoryId      String     @map("category_id")
+  locationId      String?    @map("location_id")
+  shelfNumber     String?    @map("shelf_number")
+  totalCopies     Int        @default(1) @map("total_copies")
+  availableCopies Int        @default(1) @map("available_copies")
+  coverImage      String?    @map("cover_image")
   description     String?
+  tags            String[]
+  status          BookStatus @default(AVAILABLE)
 
   // Soft delete
   deletedAt DateTime? @map("deleted_at")
@@ -1626,17 +1665,46 @@ model Book {
   // Relations
   category   BookCategory     @relation(fields: [categoryId], references: [id])
   location   LibraryLocation? @relation(fields: [locationId], references: [id])
+  copies     BookCopy[]
   borrowings Borrowing[]
 
   @@index([categoryId])
+  @@index([locationId])
   @@index([title])
   @@index([author])
+  @@index([status])
   @@map("books")
+}
+
+model BookCopy {
+  id              String        @id @default(uuid())
+  bookId          String        @map("book_id")
+  copyNumber      String        @map("copy_number") // e.g., "001", "002"
+  barcode         String        @unique
+  condition       CopyCondition @default(GOOD)
+  status          CopyStatus    @default(AVAILABLE)
+  acquisitionDate DateTime      @default(now()) @map("acquisition_date")
+  acquisitionType String        @default("PURCHASE") @map("acquisition_type") // PURCHASE, DONATION, TRANSFER
+  notes           String?
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  book       Book        @relation(fields: [bookId], references: [id])
+  borrowings Borrowing[]
+
+  @@unique([bookId, copyNumber])
+  @@index([bookId])
+  @@index([status])
+  @@map("book_copies")
 }
 
 model Borrowing {
   id         String          @id @default(uuid())
   bookId     String          @map("book_id")
+  copyId     String?         @map("copy_id")
   studentId  String          @map("student_id")
   borrowDate DateTime        @default(now()) @map("borrow_date")
   dueDate    DateTime        @map("due_date")
@@ -1650,10 +1718,12 @@ model Borrowing {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  book    Book    @relation(fields: [bookId], references: [id])
-  student Student @relation(fields: [studentId], references: [id])
+  book    Book      @relation(fields: [bookId], references: [id])
+  copy    BookCopy? @relation(fields: [copyId], references: [id])
+  student Student   @relation(fields: [studentId], references: [id])
 
   @@index([bookId])
+  @@index([copyId])
   @@index([studentId])
   @@index([status])
   @@index([dueDate])

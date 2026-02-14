@@ -39,6 +39,7 @@ import leaveRequestRoutes from './leaveRequest.routes.js';
 import salaryComponentRoutes from './salaryComponent.routes.js';
 import payrollRoutes from './payroll.routes.js';
 import employeePortalRoutes from './employeePortal.routes.js';
+import libraryRoutes from './library.routes.js';
 
 const router: RouterType = Router();
 
@@ -111,5 +112,8 @@ router.use('/api/v1/payroll', payrollRoutes);
 
 // API v1 routes - Employee Portal (self-service)
 router.use('/api/v1/employee', employeePortalRoutes);
+
+// API v1 routes - Library Management
+router.use('/api/v1/library', libraryRoutes);
 
 export default router;
