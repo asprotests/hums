@@ -104,10 +104,24 @@ enum PaymentMethod {
 }
 
 enum BorrowingStatus {
-  BORROWED
+  ACTIVE
   RETURNED
   OVERDUE
   LOST
+}
+
+enum ReservationStatus {
+  PENDING
+  READY
+  FULFILLED
+  EXPIRED
+  CANCELLED
+}
+
+enum LateFeeStatus {
+  PENDING
+  PAID
+  WAIVED
 }
 
 enum CopyCondition {
@@ -290,6 +304,12 @@ model User {
   uploadedMaterials     CourseMaterial[]
   leaveRequestsApproved LeaveRequest[]         @relation("LeaveApprover")
   payrollsApproved      Payroll[]              @relation("PayrollApprover")
+  borrowings            Borrowing[]            @relation("BorrowingBorrower")
+  borrowingsIssued      Borrowing[]            @relation("BorrowingIssuer")
+  borrowingsReceived    Borrowing[]            @relation("BorrowingReceiver")
+  borrowingsWaived      Borrowing[]            @relation("BorrowingWaiver")
+  reservations          Reservation[]
+  libraryCard           LibraryCard?
 
   @@index([email])
   @@index([username])
@@ -743,7 +763,6 @@ model Student {
   enrollments           Enrollment[]
   invoices              Invoice[]
   payments              Payment[]
-  borrowings            Borrowing[]
   attendances           StudentAttendance[]
   excuses               AttendanceExcuse[]
   scholarships          StudentScholarship[]
@@ -1663,10 +1682,10 @@ model Book {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  category   BookCategory     @relation(fields: [categoryId], references: [id])
-  location   LibraryLocation? @relation(fields: [locationId], references: [id])
-  copies     BookCopy[]
-  borrowings Borrowing[]
+  category     BookCategory     @relation(fields: [categoryId], references: [id])
+  location     LibraryLocation? @relation(fields: [locationId], references: [id])
+  copies       BookCopy[]
+  reservations Reservation[]
 
   @@index([categoryId])
   @@index([locationId])
@@ -1702,32 +1721,81 @@ model BookCopy {
 }
 
 model Borrowing {
-  id         String          @id @default(uuid())
-  bookId     String          @map("book_id")
-  copyId     String?         @map("copy_id")
-  studentId  String          @map("student_id")
-  borrowDate DateTime        @default(now()) @map("borrow_date")
-  dueDate    DateTime        @map("due_date")
-  returnDate DateTime?       @map("return_date")
-  status     BorrowingStatus @default(BORROWED)
-  lateFee    Decimal?        @map("late_fee") @db.Decimal(10, 2)
-  notes      String?
+  id            String          @id @default(uuid())
+  bookCopyId    String          @map("book_copy_id")
+  borrowerId    String          @map("borrower_id")
+  borrowerType  String          @map("borrower_type") // STUDENT or EMPLOYEE
+  borrowDate    DateTime        @default(now()) @map("borrow_date")
+  dueDate       DateTime        @map("due_date")
+  returnDate    DateTime?       @map("return_date")
+  renewCount    Int             @default(0) @map("renew_count")
+  status        BorrowingStatus @default(ACTIVE)
+  lateFee       Decimal?        @map("late_fee") @db.Decimal(10, 2)
+  lateFeeStatus LateFeeStatus?  @map("late_fee_status")
+  issuedById    String          @map("issued_by_id")
+  returnedToId  String?         @map("returned_to_id")
+  waivedById    String?         @map("waived_by_id")
+  waiveReason   String?         @map("waive_reason")
+  notes         String?
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  book    Book      @relation(fields: [bookId], references: [id])
-  copy    BookCopy? @relation(fields: [copyId], references: [id])
-  student Student   @relation(fields: [studentId], references: [id])
+  bookCopy   BookCopy @relation(fields: [bookCopyId], references: [id])
+  borrower   User     @relation("BorrowingBorrower", fields: [borrowerId], references: [id])
+  issuedBy   User     @relation("BorrowingIssuer", fields: [issuedById], references: [id])
+  returnedTo User?    @relation("BorrowingReceiver", fields: [returnedToId], references: [id])
+  waivedBy   User?    @relation("BorrowingWaiver", fields: [waivedById], references: [id])
 
-  @@index([bookId])
-  @@index([copyId])
-  @@index([studentId])
+  @@index([bookCopyId])
+  @@index([borrowerId])
   @@index([status])
   @@index([dueDate])
   @@map("borrowings")
+}
+
+model Reservation {
+  id          String            @id @default(uuid())
+  bookId      String            @map("book_id")
+  userId      String            @map("user_id")
+  reservedAt  DateTime          @default(now()) @map("reserved_at")
+  expiresAt   DateTime          @map("expires_at")
+  status      ReservationStatus @default(PENDING)
+  notifiedAt  DateTime?         @map("notified_at")
+  fulfilledAt DateTime?         @map("fulfilled_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  book Book @relation(fields: [bookId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([bookId, status])
+  @@index([userId])
+  @@map("reservations")
+}
+
+model LibraryCard {
+  id         String   @id @default(uuid())
+  userId     String   @unique @map("user_id")
+  cardNumber String   @unique @map("card_number")
+  memberType String   @map("member_type") // STUDENT or EMPLOYEE
+  issuedAt   DateTime @default(now()) @map("issued_at")
+  expiresAt  DateTime @map("expires_at")
+  isActive   Boolean  @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("library_cards")
 }
 
 // ===========================================

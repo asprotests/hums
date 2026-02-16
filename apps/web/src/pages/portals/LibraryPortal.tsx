@@ -1,5 +1,15 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, FolderTree, MapPin } from 'lucide-react';
+import {
+  LayoutDashboard,
+  BookOpen,
+  FolderTree,
+  MapPin,
+  BookCheck,
+  BookMinus,
+  Clock,
+  CalendarClock,
+  AlertTriangle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -9,11 +19,21 @@ import {
   BookFormPage,
   CategoriesPage,
   LocationsPage,
+  IssueBookPage,
+  ReturnBookPage,
+  BorrowingsListPage,
+  OverdueBooksPage,
+  ReservationsPage,
 } from '@/pages/library';
 
 const navItems = [
   { path: '/library', label: 'Dashboard', icon: LayoutDashboard, exact: true },
   { path: '/library/books', label: 'Catalog', icon: BookOpen },
+  { path: '/library/borrowings', label: 'Borrowings', icon: Clock },
+  { path: '/library/issue', label: 'Issue', icon: BookCheck },
+  { path: '/library/return', label: 'Return', icon: BookMinus },
+  { path: '/library/overdue', label: 'Overdue', icon: AlertTriangle },
+  { path: '/library/reservations', label: 'Reservations', icon: CalendarClock },
   { path: '/library/categories', label: 'Categories', icon: FolderTree },
   { path: '/library/locations', label: 'Locations', icon: MapPin },
 ];
@@ -55,6 +75,11 @@ export function LibraryPortal() {
         <Route path="books/new" element={<BookFormPage />} />
         <Route path="books/:id" element={<BookDetailPage />} />
         <Route path="books/:id/edit" element={<BookFormPage />} />
+        <Route path="borrowings" element={<BorrowingsListPage />} />
+        <Route path="issue" element={<IssueBookPage />} />
+        <Route path="return" element={<ReturnBookPage />} />
+        <Route path="overdue" element={<OverdueBooksPage />} />
+        <Route path="reservations" element={<ReservationsPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="locations" element={<LocationsPage />} />
       </Routes>

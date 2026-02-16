@@ -7,6 +7,8 @@ import { bookCategoryService } from '../services/bookCategory.service.js';
 import { libraryLocationService } from '../services/libraryLocation.service.js';
 import { bookService } from '../services/book.service.js';
 import { bookCopyService } from '../services/bookCopy.service.js';
+import { borrowingService } from '../services/borrowing.service.js';
+import { reservationService } from '../services/reservation.service.js';
 import {
   createBookCategorySchema,
   updateBookCategorySchema,
@@ -19,6 +21,13 @@ import {
   removeCopiesSchema,
   createBookCopySchema,
   updateBookCopySchema,
+  issueBookSchema,
+  returnBookSchema,
+  returnByBarcodeSchema,
+  waiveFeeSchema,
+  borrowingQuerySchema,
+  createReservationSchema,
+  reservationQuerySchema,
 } from '../validators/library.validator.js';
 
 const router: RouterType = Router();
@@ -494,6 +503,360 @@ router.post(
     const { borrowingId } = req.body;
     await bookCopyService.markAsLost(req.params.id, borrowingId, req.user!.userId);
     return sendSuccess(res, null, 'Copy marked as lost');
+  })
+);
+
+// ===========================================
+// Borrowing Routes
+// ===========================================
+
+/**
+ * GET /api/v1/library/borrowings
+ * Get all borrowings with filters
+ */
+router.get(
+  '/borrowings',
+  authorize('borrowings:read'),
+  validate(borrowingQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const { page, limit, status, borrowerId, borrowerType, isOverdue, dateFrom, dateTo } = req.query;
+    const result = await borrowingService.getBorrowings(
+      {
+        status: status as any,
+        borrowerId: borrowerId as string,
+        borrowerType: borrowerType as string,
+        isOverdue: isOverdue === 'true',
+        dateFrom: dateFrom ? new Date(dateFrom as string) : undefined,
+        dateTo: dateTo ? new Date(dateTo as string) : undefined,
+      },
+      parseInt(page as string) || 1,
+      parseInt(limit as string) || 20
+    );
+    return sendPaginated(res, result.data, result.pagination);
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/overdue
+ * Get overdue borrowings
+ */
+router.get(
+  '/borrowings/overdue',
+  authorize('borrowings:read'),
+  asyncHandler(async (_req, res) => {
+    const borrowings = await borrowingService.getOverdueBorrowings();
+    return sendSuccess(res, borrowings);
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/member/:memberId
+ * Get active borrowings for a member
+ */
+router.get(
+  '/borrowings/member/:memberId',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const borrowings = await borrowingService.getActiveBorrowings(req.params.memberId);
+    return sendSuccess(res, borrowings);
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/member/:memberId/history
+ * Get borrowing history for a member
+ */
+router.get(
+  '/borrowings/member/:memberId/history',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const { page, limit } = req.query;
+    const result = await borrowingService.getBorrowingHistory(
+      req.params.memberId,
+      parseInt(page as string) || 1,
+      parseInt(limit as string) || 20
+    );
+    return sendPaginated(res, result.data, result.pagination);
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/member/:memberId/stats
+ * Get member statistics
+ */
+router.get(
+  '/borrowings/member/:memberId/stats',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const stats = await borrowingService.getMemberStats(req.params.memberId);
+    return sendSuccess(res, stats);
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/:id
+ * Get borrowing by ID
+ */
+router.get(
+  '/borrowings/:id',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const borrowing = await borrowingService.getBorrowingById(req.params.id);
+    return sendSuccess(res, borrowing);
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/issue
+ * Issue a book to a member
+ */
+router.post(
+  '/borrowings/issue',
+  authorize('borrowings:create'),
+  validate(issueBookSchema),
+  asyncHandler(async (req, res) => {
+    const borrowing = await borrowingService.issueBook(req.body, req.user!.userId);
+    return sendCreated(res, borrowing);
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/:id/return
+ * Return a borrowed book
+ */
+router.post(
+  '/borrowings/:id/return',
+  authorize('borrowings:update'),
+  validate(returnBookSchema),
+  asyncHandler(async (req, res) => {
+    const { condition, waiveFee, waiveReason } = req.body;
+    const borrowing = await borrowingService.returnBook(
+      req.params.id,
+      req.user!.userId,
+      condition,
+      waiveFee,
+      waiveReason
+    );
+    return sendSuccess(res, borrowing, 'Book returned successfully');
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/return-by-barcode
+ * Return a book by scanning barcode
+ */
+router.post(
+  '/borrowings/return-by-barcode',
+  authorize('borrowings:update'),
+  validate(returnByBarcodeSchema),
+  asyncHandler(async (req, res) => {
+    const { barcode, condition, waiveFee, waiveReason } = req.body;
+    const borrowing = await borrowingService.returnByBarcode(
+      barcode,
+      req.user!.userId,
+      condition,
+      waiveFee,
+      waiveReason
+    );
+    return sendSuccess(res, borrowing, 'Book returned successfully');
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/:id/renew
+ * Renew a borrowed book
+ */
+router.post(
+  '/borrowings/:id/renew',
+  authorize('borrowings:update'),
+  asyncHandler(async (req, res) => {
+    const borrowing = await borrowingService.renewBook(req.params.id, req.user!.userId);
+    return sendSuccess(res, borrowing, 'Book renewed successfully');
+  })
+);
+
+/**
+ * GET /api/v1/library/borrowings/:id/can-renew
+ * Check if a book can be renewed
+ */
+router.get(
+  '/borrowings/:id/can-renew',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const result = await borrowingService.canRenew(req.params.id);
+    return sendSuccess(res, result);
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/:id/waive-fee
+ * Waive late fee for a borrowing
+ */
+router.post(
+  '/borrowings/:id/waive-fee',
+  authorize('borrowings:update'),
+  validate(waiveFeeSchema),
+  asyncHandler(async (req, res) => {
+    const { reason } = req.body;
+    const borrowing = await borrowingService.waiveLateFee(
+      req.params.id,
+      req.user!.userId,
+      reason
+    );
+    return sendSuccess(res, borrowing, 'Late fee waived');
+  })
+);
+
+/**
+ * POST /api/v1/library/borrowings/:id/pay-fee
+ * Mark late fee as paid
+ */
+router.post(
+  '/borrowings/:id/pay-fee',
+  authorize('borrowings:update'),
+  asyncHandler(async (req, res) => {
+    const borrowing = await borrowingService.payLateFee(req.params.id, req.user!.userId);
+    return sendSuccess(res, borrowing, 'Late fee paid');
+  })
+);
+
+/**
+ * GET /api/v1/library/members/:memberId/can-borrow
+ * Check if a member can borrow books
+ */
+router.get(
+  '/members/:memberId/can-borrow',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const { borrowerType } = req.query;
+    const result = await borrowingService.canBorrow(
+      req.params.memberId,
+      (borrowerType as string) || 'STUDENT'
+    );
+    return sendSuccess(res, result);
+  })
+);
+
+// ===========================================
+// Reservation Routes
+// ===========================================
+
+/**
+ * GET /api/v1/library/reservations
+ * Get all reservations with filters
+ */
+router.get(
+  '/reservations',
+  authorize('borrowings:read'),
+  validate(reservationQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const { page, limit, status, userId, bookId } = req.query;
+    const result = await reservationService.getReservations(
+      {
+        status: status as any,
+        userId: userId as string,
+        bookId: bookId as string,
+      },
+      parseInt(page as string) || 1,
+      parseInt(limit as string) || 20
+    );
+    return sendPaginated(res, result.data, result.pagination);
+  })
+);
+
+/**
+ * GET /api/v1/library/reservations/ready-for-pickup
+ * Get reservations ready for pickup
+ */
+router.get(
+  '/reservations/ready-for-pickup',
+  authorize('borrowings:read'),
+  asyncHandler(async (_req, res) => {
+    const reservations = await reservationService.getReadyForPickup();
+    return sendSuccess(res, reservations);
+  })
+);
+
+/**
+ * GET /api/v1/library/reservations/user/:userId
+ * Get reservations for a user
+ */
+router.get(
+  '/reservations/user/:userId',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const reservations = await reservationService.getUserReservations(req.params.userId);
+    return sendSuccess(res, reservations);
+  })
+);
+
+/**
+ * GET /api/v1/library/reservations/book/:bookId
+ * Get reservations for a book
+ */
+router.get(
+  '/reservations/book/:bookId',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const reservations = await reservationService.getBookReservations(req.params.bookId);
+    return sendSuccess(res, reservations);
+  })
+);
+
+/**
+ * GET /api/v1/library/reservations/:id
+ * Get reservation by ID
+ */
+router.get(
+  '/reservations/:id',
+  authorize('borrowings:read'),
+  asyncHandler(async (req, res) => {
+    const reservation = await reservationService.getReservationById(req.params.id);
+    return sendSuccess(res, reservation);
+  })
+);
+
+/**
+ * POST /api/v1/library/reservations
+ * Create a reservation
+ */
+router.post(
+  '/reservations',
+  authorize('borrowings:create'),
+  validate(createReservationSchema),
+  asyncHandler(async (req, res) => {
+    const { bookId } = req.body;
+    const reservation = await reservationService.reserveBook(bookId, req.user!.userId);
+    return sendCreated(res, reservation);
+  })
+);
+
+/**
+ * DELETE /api/v1/library/reservations/:id
+ * Cancel a reservation
+ */
+router.delete(
+  '/reservations/:id',
+  authorize('borrowings:delete'),
+  asyncHandler(async (req, res) => {
+    await reservationService.cancelReservation(req.params.id, req.user!.userId, true);
+    return sendSuccess(res, null, 'Reservation cancelled');
+  })
+);
+
+/**
+ * POST /api/v1/library/reservations/:id/fulfill
+ * Fulfill a reservation (book issued to reserved user)
+ */
+router.post(
+  '/reservations/:id/fulfill',
+  authorize('borrowings:update'),
+  asyncHandler(async (req, res) => {
+    const reservation = await reservationService.fulfillReservation(
+      req.params.id,
+      req.user!.userId
+    );
+    return sendSuccess(res, reservation, 'Reservation fulfilled');
   })
 );
 

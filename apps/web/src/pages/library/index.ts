@@ -4,3 +4,8 @@ export { BookDetailPage } from './BookDetailPage';
 export { BookFormPage } from './BookFormPage';
 export { CategoriesPage } from './CategoriesPage';
 export { LocationsPage } from './LocationsPage';
+export { IssueBookPage } from './IssueBookPage';
+export { ReturnBookPage } from './ReturnBookPage';
+export { BorrowingsListPage } from './BorrowingsListPage';
+export { OverdueBooksPage } from './OverdueBooksPage';
+export { ReservationsPage } from './ReservationsPage';

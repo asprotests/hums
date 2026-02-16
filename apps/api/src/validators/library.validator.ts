@@ -121,3 +121,68 @@ export const updateBookCopySchema = z.object({
   status: z.enum(['AVAILABLE', 'BORROWED', 'RESERVED', 'MAINTENANCE', 'LOST', 'RETIRED']).optional(),
   notes: z.string().optional(),
 });
+
+// ===========================================
+// Borrowing Validators
+// ===========================================
+
+export const issueBookSchema = z.object({
+  bookCopyId: z.string().uuid().optional(),
+  barcode: z.string().optional(),
+  borrowerId: z.string().uuid('Invalid borrower ID'),
+  borrowerType: z.enum(['STUDENT', 'EMPLOYEE']),
+}).refine(data => data.bookCopyId || data.barcode, {
+  message: 'Either bookCopyId or barcode is required',
+});
+
+export const returnBookSchema = z.object({
+  condition: z.enum(['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED']).optional(),
+  notes: z.string().optional(),
+  waiveFee: z.boolean().optional().default(false),
+  waiveReason: z.string().optional(),
+}).refine(data => !data.waiveFee || data.waiveReason, {
+  message: 'Waive reason is required when waiving fee',
+  path: ['waiveReason'],
+});
+
+export const returnByBarcodeSchema = z.object({
+  barcode: z.string().min(1, 'Barcode is required'),
+  condition: z.enum(['NEW', 'GOOD', 'FAIR', 'POOR', 'DAMAGED']).optional(),
+  notes: z.string().optional(),
+  waiveFee: z.boolean().optional().default(false),
+  waiveReason: z.string().optional(),
+}).refine(data => !data.waiveFee || data.waiveReason, {
+  message: 'Waive reason is required when waiving fee',
+  path: ['waiveReason'],
+});
+
+export const waiveFeeSchema = z.object({
+  reason: z.string().min(1, 'Reason is required'),
+});
+
+export const borrowingQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  status: z.enum(['ACTIVE', 'RETURNED', 'OVERDUE', 'LOST']).optional(),
+  borrowerId: z.string().uuid().optional(),
+  borrowerType: z.enum(['STUDENT', 'EMPLOYEE']).optional(),
+  isOverdue: z.enum(['true', 'false']).optional(),
+  dateFrom: z.string().datetime().optional(),
+  dateTo: z.string().datetime().optional(),
+});
+
+// ===========================================
+// Reservation Validators
+// ===========================================
+
+export const createReservationSchema = z.object({
+  bookId: z.string().uuid('Invalid book ID'),
+});
+
+export const reservationQuerySchema = z.object({
+  page: z.string().regex(/^\d+$/).optional(),
+  limit: z.string().regex(/^\d+$/).optional(),
+  status: z.enum(['PENDING', 'READY', 'FULFILLED', 'EXPIRED', 'CANCELLED']).optional(),
+  userId: z.string().uuid().optional(),
+  bookId: z.string().uuid().optional(),
+});

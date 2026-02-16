@@ -139,12 +139,10 @@ class BookService {
           orderBy: { copyNumber: 'asc' },
           include: {
             borrowings: {
-              where: { status: 'BORROWED' },
+              where: { status: 'ACTIVE' },
               include: {
-                student: {
-                  select: {
-                    user: { select: { firstName: true, lastName: true } },
-                  },
+                borrower: {
+                  select: { firstName: true, lastName: true },
                 },
               },
               take: 1,
@@ -440,7 +438,11 @@ class BookService {
     const book = await prisma.book.findFirst({
       where: { id, deletedAt: null },
       include: {
-        borrowings: { where: { status: 'BORROWED' } },
+        copies: {
+          include: {
+            borrowings: { where: { status: 'ACTIVE' } },
+          },
+        },
       },
     });
 
@@ -448,7 +450,9 @@ class BookService {
       throw AppError.notFound('Book not found');
     }
 
-    if (book.borrowings.length > 0) {
+    // Check if any copy has active borrowings
+    const hasActiveBorrowings = book.copies.some(copy => copy.borrowings.length > 0);
+    if (hasActiveBorrowings) {
       throw AppError.badRequest('Cannot delete book with active borrowings');
     }
 

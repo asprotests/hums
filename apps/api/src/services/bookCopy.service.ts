@@ -53,13 +53,14 @@ class BookCopyService {
       where: { bookId },
       include: {
         borrowings: {
-          where: { status: 'BORROWED' },
+          where: { status: 'ACTIVE' },
           include: {
-            student: {
+            borrower: {
               select: {
                 id: true,
-                studentId: true,
-                user: { select: { firstName: true, lastName: true } },
+                firstName: true,
+                lastName: true,
+                email: true,
               },
             },
           },
@@ -71,7 +72,7 @@ class BookCopyService {
 
     return copies.map(copy => ({
       ...copy,
-      currentBorrower: copy.borrowings[0]?.student || null,
+      currentBorrower: copy.borrowings[0]?.borrower || null,
       borrowings: undefined,
     }));
   }
@@ -90,13 +91,14 @@ class BookCopyService {
           },
         },
         borrowings: {
-          where: { status: 'BORROWED' },
+          where: { status: 'ACTIVE' },
           include: {
-            student: {
+            borrower: {
               select: {
                 id: true,
-                studentId: true,
-                user: { select: { firstName: true, lastName: true } },
+                firstName: true,
+                lastName: true,
+                email: true,
               },
             },
           },
@@ -111,7 +113,7 @@ class BookCopyService {
 
     return {
       ...copy,
-      currentBorrower: copy.borrowings[0]?.student || null,
+      currentBorrower: copy.borrowings[0]?.borrower || null,
     };
   }
 
@@ -129,13 +131,14 @@ class BookCopyService {
           },
         },
         borrowings: {
-          where: { status: 'BORROWED' },
+          where: { status: 'ACTIVE' },
           include: {
-            student: {
+            borrower: {
               select: {
                 id: true,
-                studentId: true,
-                user: { select: { firstName: true, lastName: true } },
+                firstName: true,
+                lastName: true,
+                email: true,
               },
             },
           },
@@ -150,7 +153,7 @@ class BookCopyService {
 
     return {
       ...copy,
-      currentBorrower: copy.borrowings[0]?.student || null,
+      currentBorrower: copy.borrowings[0]?.borrower || null,
     };
   }
 

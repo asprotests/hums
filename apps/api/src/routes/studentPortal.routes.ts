@@ -3,6 +3,8 @@ import { prisma } from '@hums/database';
 import { studentService } from '../services/student.service.js';
 import { paymentService } from '../services/payment.service.js';
 import { feeStructureService } from '../services/feeStructure.service.js';
+import { borrowingService } from '../services/borrowing.service.js';
+import { reservationService } from '../services/reservation.service.js';
 import { authenticate } from '../middleware/index.js';
 import { asyncHandler, sendSuccess } from '../utils/index.js';
 import { AppError } from '../utils/AppError.js';
@@ -931,6 +933,188 @@ router.get(
         publishedAt: a.publishAt,
       })),
     });
+  })
+);
+
+// ============================================
+// LIBRARY ROUTES
+// ============================================
+
+/**
+ * @route   GET /api/v1/student/library/borrowings
+ * @desc    Get current borrowings
+ * @access  Private (Student only)
+ */
+router.get(
+  '/library/borrowings',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const borrowings = await borrowingService.getActiveBorrowings(userId);
+    return sendSuccess(res, borrowings);
+  })
+);
+
+/**
+ * @route   GET /api/v1/student/library/history
+ * @desc    Get borrowing history
+ * @access  Private (Student only)
+ */
+router.get(
+  '/library/history',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const { page, limit } = req.query;
+    const result = await borrowingService.getBorrowingHistory(
+      userId,
+      parseInt(page as string) || 1,
+      parseInt(limit as string) || 20
+    );
+    return sendSuccess(res, result);
+  })
+);
+
+/**
+ * @route   POST /api/v1/student/library/renew/:borrowingId
+ * @desc    Renew a borrowed book
+ * @access  Private (Student only)
+ */
+router.post(
+  '/library/renew/:borrowingId',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const { borrowingId } = req.params;
+
+    // Verify the borrowing belongs to the student
+    const borrowing = await prisma.borrowing.findFirst({
+      where: {
+        id: borrowingId,
+        borrowerId: userId,
+        status: { in: ['ACTIVE', 'OVERDUE'] },
+      },
+    });
+
+    if (!borrowing) {
+      throw AppError.notFound('Borrowing not found or not eligible for renewal');
+    }
+
+    const result = await borrowingService.renewBook(borrowingId, userId);
+    return sendSuccess(res, result, 'Book renewed successfully');
+  })
+);
+
+/**
+ * @route   GET /api/v1/student/library/reservations
+ * @desc    Get student's reservations
+ * @access  Private (Student only)
+ */
+router.get(
+  '/library/reservations',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const reservations = await reservationService.getUserReservations(userId);
+    return sendSuccess(res, reservations);
+  })
+);
+
+/**
+ * @route   POST /api/v1/student/library/reserve/:bookId
+ * @desc    Reserve a book
+ * @access  Private (Student only)
+ */
+router.post(
+  '/library/reserve/:bookId',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const { bookId } = req.params;
+    const reservation = await reservationService.reserveBook(bookId, userId);
+    return sendSuccess(res, reservation, 'Book reserved successfully');
+  })
+);
+
+/**
+ * @route   DELETE /api/v1/student/library/reservations/:id
+ * @desc    Cancel a reservation
+ * @access  Private (Student only)
+ */
+router.delete(
+  '/library/reservations/:id',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const { id } = req.params;
+
+    // Verify the reservation belongs to the student
+    const reservation = await prisma.reservation.findFirst({
+      where: {
+        id,
+        userId,
+        status: { in: ['PENDING', 'READY'] },
+      },
+    });
+
+    if (!reservation) {
+      throw AppError.notFound('Reservation not found');
+    }
+
+    await reservationService.cancelReservation(id, userId);
+    return sendSuccess(res, null, 'Reservation cancelled');
+  })
+);
+
+/**
+ * @route   GET /api/v1/student/library/fines
+ * @desc    Get unpaid library fines
+ * @access  Private (Student only)
+ */
+router.get(
+  '/library/fines',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+
+    const fines = await prisma.borrowing.findMany({
+      where: {
+        borrowerId: userId,
+        lateFee: { gt: 0 },
+        lateFeeStatus: 'PENDING',
+      },
+      include: {
+        bookCopy: {
+          include: {
+            book: {
+              select: { id: true, title: true, author: true },
+            },
+          },
+        },
+      },
+      orderBy: { returnDate: 'desc' },
+    });
+
+    const totalFines = fines.reduce((sum, b) => sum + Number(b.lateFee || 0), 0);
+
+    return sendSuccess(res, {
+      fines: fines.map((f) => ({
+        id: f.id,
+        book: f.bookCopy.book,
+        borrowDate: f.borrowDate,
+        dueDate: f.dueDate,
+        returnDate: f.returnDate,
+        lateFee: Number(f.lateFee),
+      })),
+      totalFines,
+    });
+  })
+);
+
+/**
+ * @route   GET /api/v1/student/library/stats
+ * @desc    Get library statistics for the student
+ * @access  Private (Student only)
+ */
+router.get(
+  '/library/stats',
+  asyncHandler(async (req, res) => {
+    const userId = req.user!.userId;
+    const stats = await borrowingService.getMemberStats(userId);
+    return sendSuccess(res, stats);
   })
 );
 
