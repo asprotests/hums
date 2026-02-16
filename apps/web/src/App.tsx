@@ -13,6 +13,7 @@ import {
 } from './pages';
 import { LoginPage, ForgotPasswordPage, ResetPasswordPage } from './pages/auth';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
             }
           >
             <Route index element={<Home />} />
+            <Route path="notifications" element={<NotificationsPage />} />
             <Route
               path="admin/*"
               element={

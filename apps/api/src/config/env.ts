@@ -27,6 +27,16 @@ const envSchema = z.object({
   // Rate Limiting
   RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
+
+  // Email (SMTP)
+  SMTP_HOST: z.string().default('localhost'),
+  SMTP_PORT: z.string().default('587'),
+  SMTP_SECURE: z.string().default('false'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM_NAME: z.string().default('Hormuud University'),
+  EMAIL_FROM_ADDRESS: z.string().default('noreply@hormuud.edu.so'),
+  EMAIL_REPLY_TO: z.string().default('support@hormuud.edu.so'),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -40,6 +40,8 @@ import salaryComponentRoutes from './salaryComponent.routes.js';
 import payrollRoutes from './payroll.routes.js';
 import employeePortalRoutes from './employeePortal.routes.js';
 import libraryRoutes from './library.routes.js';
+import emailRoutes from './email.routes.js';
+import notificationRoutes from './notification.routes.js';
 
 const router: RouterType = Router();
 
@@ -115,5 +117,9 @@ router.use('/api/v1/employee', employeePortalRoutes);
 
 // API v1 routes - Library Management
 router.use('/api/v1/library', libraryRoutes);
+
+// API v1 routes - Email & Notifications
+router.use('/api/v1/email', emailRoutes);
+router.use('/api/v1/notifications', notificationRoutes);
 
 export default router;

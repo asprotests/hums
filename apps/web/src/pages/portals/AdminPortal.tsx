@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar, Briefcase, CreditCard } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar, Briefcase, CreditCard, Mail } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -76,6 +76,8 @@ import {
   ExamListPage,
   ExamFormPage,
 } from '@/pages/admin/grades';
+import { EmailTemplatesPage } from '@/pages/admin/EmailTemplatesPage';
+import { EmailTemplateEditorPage } from '@/pages/admin/EmailTemplateEditorPage';
 
 function AdminDashboard() {
   return (
@@ -290,6 +292,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/email/templates">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Email Templates
+              </CardTitle>
+              <CardDescription>Manage email templates and notifications</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/settings">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -321,6 +334,7 @@ const navItems = [
   { path: '/admin/hr', label: 'HR', icon: Clock },
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
   { path: '/admin/audit', label: 'Audit', icon: Activity },
+  { path: '/admin/email', label: 'Email', icon: Mail },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -450,6 +464,9 @@ export function AdminPortal() {
         <Route path="finance/reports/outstanding" element={<OutstandingReportPage />} />
         {/* Audit Routes */}
         <Route path="audit" element={<AuditLogPage />} />
+        {/* Email Routes */}
+        <Route path="email/templates" element={<EmailTemplatesPage />} />
+        <Route path="email/templates/:id/edit" element={<EmailTemplateEditorPage />} />
         {/* Settings Routes */}
         <Route path="settings" element={<SystemSettingsPage />} />
       </Routes>

@@ -2,6 +2,7 @@ import { Outlet, Link } from 'react-router-dom';
 import { LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { NotificationBell } from '@/components/NotificationBell';
 
 const navItems = [
   { path: '/admin', label: 'Admin', roles: ['SUPER_ADMIN', 'ADMIN'] },
@@ -37,6 +38,7 @@ export function MainLayout() {
             ))}
           </nav>
           <div className="flex items-center gap-4">
+            <NotificationBell />
             <span className="text-sm text-muted-foreground">{userName}</span>
             <Button variant="ghost" size="sm" onClick={handleLogout}>
               <LogOut className="h-4 w-4 mr-2" />
