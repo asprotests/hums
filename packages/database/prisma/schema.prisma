@@ -288,6 +288,73 @@ enum MaterialType {
   OTHER
 }
 
+enum ScholarshipType {
+  MERIT
+  NEED_BASED
+  ATHLETIC
+  FULL
+  PARTIAL
+  EXTERNAL
+}
+
+enum ScholarshipAwardStatus {
+  PENDING
+  APPROVED
+  APPLIED
+  REVOKED
+}
+
+enum WaiverType {
+  SIBLING_DISCOUNT
+  STAFF_DEPENDENT
+  FINANCIAL_HARDSHIP
+  ACADEMIC_EXCELLENCE
+  OTHER
+}
+
+enum FeeWaiverStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  APPLIED
+}
+
+enum PaymentPlanStatus {
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+enum InstallmentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+}
+
+enum RefundReason {
+  WITHDRAWAL
+  OVERPAYMENT
+  COURSE_CANCELLATION
+  FEE_ADJUSTMENT
+  OTHER
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum BudgetStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
 // ===========================================
 // Core Auth & User Management Models
 // ===========================================
@@ -338,6 +405,14 @@ model User {
   reservations          Reservation[]
   libraryCard           LibraryCard?
   notifications         Notification[]
+
+  // Advanced Finance relations
+  scholarshipAwards      StudentScholarship[] @relation("ScholarshipAwarder")
+  feeWaiversApproved     FeeWaiver[]          @relation("WaiverApprover")
+  paymentPlansCreated    PaymentPlan[]        @relation("PaymentPlanCreator")
+  refundsApproved        RefundRequest[]      @relation("RefundApprover")
+  refundsProcessed       RefundRequest[]      @relation("RefundProcessor")
+  budgetExpensesRecorded BudgetExpense[]      @relation("BudgetExpenseRecorder")
 
   @@index([email])
   @@index([username])
@@ -509,6 +584,7 @@ model Department {
   programs  Program[]
   courses   Course[]
   employees Employee[] @relation("DepartmentEmployees")
+  budgets   Budget[]
 
   @@index([facultyId])
   @@index([code])
@@ -605,7 +681,8 @@ model AcademicYear {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  semesters Semester[]
+  semesters    Semester[]
+  scholarships Scholarship[]
 
   @@index([isCurrent])
   @@map("academic_years")
@@ -800,6 +877,11 @@ model Student {
   prerequisiteOverrides PrerequisiteOverride[]
   paymentSessions       PaymentSession[]
   paymentTransactions   PaymentTransaction[]
+
+  // Advanced Finance relations
+  feeWaivers     FeeWaiver[]
+  paymentPlans   PaymentPlan[]
+  refundRequests RefundRequest[]
 
   @@index([studentId])
   @@index([programId])
@@ -1087,16 +1169,16 @@ model StudentAttendance {
 }
 
 model AttendanceExcuse {
-  id             String       @id @default(uuid())
-  studentId      String       @map("student_id")
-  classId        String       @map("class_id")
-  date           DateTime     @db.Date
-  reason         String
-  documentUrl    String?      @map("document_url")
-  status         ExcuseStatus @default(PENDING)
-  reviewedById   String?      @map("reviewed_by_id")
-  reviewedAt     DateTime?    @map("reviewed_at")
-  reviewRemarks  String?      @map("review_remarks")
+  id            String       @id @default(uuid())
+  studentId     String       @map("student_id")
+  classId       String       @map("class_id")
+  date          DateTime     @db.Date
+  reason        String
+  documentUrl   String?      @map("document_url")
+  status        ExcuseStatus @default(PENDING)
+  reviewedById  String?      @map("reviewed_by_id")
+  reviewedAt    DateTime?    @map("reviewed_at")
+  reviewRemarks String?      @map("review_remarks")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1490,6 +1572,7 @@ model Invoice {
   payments            Payment[]
   paymentSessions     PaymentSession[]
   paymentTransactions PaymentTransaction[]
+  paymentPlans        PaymentPlan[]
 
   @@index([studentId])
   @@index([status])
@@ -1513,9 +1596,11 @@ model Payment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  invoice      Invoice?             @relation(fields: [invoiceId], references: [id])
-  student      Student              @relation(fields: [studentId], references: [id])
-  transactions PaymentTransaction[]
+  invoice        Invoice?             @relation(fields: [invoiceId], references: [id])
+  student        Student              @relation(fields: [studentId], references: [id])
+  transactions   PaymentTransaction[]
+  refundRequests RefundRequest[]
+  installments   Installment[]
 
   @@index([studentId])
   @@index([invoiceId])
@@ -1525,31 +1610,43 @@ model Payment {
 }
 
 model Scholarship {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  amount      Decimal  @db.Decimal(12, 2)
-  percentage  Decimal? @db.Decimal(5, 2) // Alternative: percentage discount
-  isActive    Boolean  @default(true) @map("is_active")
+  id                  String          @id @default(uuid())
+  name                String
+  description         String?
+  type                ScholarshipType @default(MERIT)
+  amount              Decimal         @db.Decimal(12, 2)
+  amountType          String          @default("FIXED") @map("amount_type") // FIXED or PERCENTAGE
+  criteria            Json? // {minGPA, maxIncome, programs[], yearOfStudy[]}
+  maxRecipients       Int?            @map("max_recipients")
+  academicYearId      String?         @map("academic_year_id")
+  applicationDeadline DateTime?       @map("application_deadline")
+  isActive            Boolean         @default(true) @map("is_active")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  students StudentScholarship[]
+  academicYear AcademicYear?        @relation(fields: [academicYearId], references: [id])
+  awards       StudentScholarship[]
 
+  @@index([type])
+  @@index([academicYearId])
   @@map("scholarships")
 }
 
 model StudentScholarship {
-  id            String    @id @default(uuid())
-  studentId     String    @map("student_id")
-  scholarshipId String    @map("scholarship_id")
-  awardedDate   DateTime  @map("awarded_date")
-  startDate     DateTime  @map("start_date")
-  endDate       DateTime? @map("end_date")
-  notes         String?
+  id               String                 @id @default(uuid())
+  studentId        String                 @map("student_id")
+  scholarshipId    String                 @map("scholarship_id")
+  amount           Decimal                @db.Decimal(12, 2)
+  status           ScholarshipAwardStatus @default(PENDING)
+  appliedToInvoice String?                @map("applied_to_invoice")
+  awardedById      String                 @map("awarded_by_id")
+  awardedAt        DateTime               @default(now()) @map("awarded_at")
+  revokedAt        DateTime?              @map("revoked_at")
+  revokedReason    String?                @map("revoked_reason")
+  notes            String?
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1558,9 +1655,125 @@ model StudentScholarship {
   // Relations
   student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
   scholarship Scholarship @relation(fields: [scholarshipId], references: [id])
+  awardedBy   User        @relation("ScholarshipAwarder", fields: [awardedById], references: [id])
 
   @@unique([studentId, scholarshipId])
+  @@index([status])
   @@map("student_scholarships")
+}
+
+model FeeWaiver {
+  id               String          @id @default(uuid())
+  studentId        String          @map("student_id")
+  type             WaiverType
+  amount           Decimal         @db.Decimal(12, 2)
+  amountType       String          @default("FIXED") @map("amount_type") // FIXED or PERCENTAGE
+  reason           String
+  supportingDocs   Json?           @map("supporting_docs") // Array of file paths/URLs
+  status           FeeWaiverStatus @default(PENDING)
+  approvedById     String?         @map("approved_by_id")
+  rejectionReason  String?         @map("rejection_reason")
+  validFrom        DateTime        @map("valid_from")
+  validTo          DateTime        @map("valid_to")
+  appliedToInvoice String?         @map("applied_to_invoice")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student    Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  approvedBy User?   @relation("WaiverApprover", fields: [approvedById], references: [id])
+
+  @@index([studentId])
+  @@index([status])
+  @@map("fee_waivers")
+}
+
+model PaymentPlan {
+  id                   String            @id @default(uuid())
+  studentId            String            @map("student_id")
+  invoiceId            String            @map("invoice_id")
+  totalAmount          Decimal           @map("total_amount") @db.Decimal(12, 2)
+  downPayment          Decimal           @map("down_payment") @db.Decimal(12, 2)
+  numberOfInstallments Int               @map("number_of_installments")
+  startDate            DateTime          @map("start_date")
+  status               PaymentPlanStatus @default(ACTIVE)
+  lateFeePercentage    Decimal           @default(2) @map("late_fee_percentage") @db.Decimal(5, 2)
+  createdById          String            @map("created_by_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student      Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  invoice      Invoice       @relation(fields: [invoiceId], references: [id])
+  createdBy    User          @relation("PaymentPlanCreator", fields: [createdById], references: [id])
+  installments Installment[]
+
+  @@index([studentId])
+  @@index([invoiceId])
+  @@index([status])
+  @@map("payment_plans")
+}
+
+model Installment {
+  id         String            @id @default(uuid())
+  planId     String            @map("plan_id")
+  number     Int
+  amount     Decimal           @db.Decimal(12, 2)
+  dueDate    DateTime          @map("due_date")
+  paidAmount Decimal           @default(0) @map("paid_amount") @db.Decimal(12, 2)
+  status     InstallmentStatus @default(PENDING)
+  lateFee    Decimal           @default(0) @map("late_fee") @db.Decimal(12, 2)
+  paidAt     DateTime?         @map("paid_at")
+  paymentId  String?           @map("payment_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  plan    PaymentPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  payment Payment?    @relation(fields: [paymentId], references: [id])
+
+  @@index([planId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("installments")
+}
+
+model RefundRequest {
+  id              String       @id @default(uuid())
+  studentId       String       @map("student_id")
+  paymentId       String       @map("payment_id")
+  amount          Decimal      @db.Decimal(12, 2)
+  reason          RefundReason
+  description     String?
+  status          RefundStatus @default(PENDING)
+  approvedById    String?      @map("approved_by_id")
+  processedById   String?      @map("processed_by_id")
+  refundMethod    String?      @map("refund_method")
+  refundReference String?      @map("refund_reference")
+  rejectionReason String?      @map("rejection_reason")
+  approvedAt      DateTime?    @map("approved_at")
+  processedAt     DateTime?    @map("processed_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  student     Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  payment     Payment @relation(fields: [paymentId], references: [id])
+  approvedBy  User?   @relation("RefundApprover", fields: [approvedById], references: [id])
+  processedBy User?   @relation("RefundProcessor", fields: [processedById], references: [id])
+
+  @@index([studentId])
+  @@index([paymentId])
+  @@index([status])
+  @@map("refund_requests")
 }
 
 model Vendor {
@@ -1616,17 +1829,17 @@ model ExpenseCategory {
 
   // Relations
   expenses Expense[]
-  budgets  Budget[]
 
   @@map("expense_categories")
 }
 
 model Budget {
-  id           String  @id @default(uuid())
-  categoryId   String  @map("category_id")
-  academicYear String  @map("academic_year")
-  amount       Decimal @db.Decimal(12, 2)
-  spent        Decimal @default(0) @db.Decimal(12, 2)
+  id           String       @id @default(uuid())
+  name         String
+  departmentId String?      @map("department_id")
+  fiscalYear   String       @map("fiscal_year")
+  totalAmount  Decimal      @map("total_amount") @db.Decimal(12, 2)
+  status       BudgetStatus @default(DRAFT)
   notes        String?
 
   // Timestamps
@@ -1634,11 +1847,53 @@ model Budget {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  category ExpenseCategory @relation(fields: [categoryId], references: [id])
+  department Department?      @relation(fields: [departmentId], references: [id])
+  categories BudgetCategory[]
 
-  @@unique([categoryId, academicYear])
-  @@index([academicYear])
+  @@unique([departmentId, fiscalYear])
+  @@index([fiscalYear])
+  @@index([status])
   @@map("budgets")
+}
+
+model BudgetCategory {
+  id              String  @id @default(uuid())
+  budgetId        String  @map("budget_id")
+  name            String
+  allocatedAmount Decimal @map("allocated_amount") @db.Decimal(12, 2)
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  budget   Budget          @relation(fields: [budgetId], references: [id], onDelete: Cascade)
+  expenses BudgetExpense[]
+
+  @@index([budgetId])
+  @@map("budget_categories")
+}
+
+model BudgetExpense {
+  id           String   @id @default(uuid())
+  categoryId   String   @map("category_id")
+  amount       Decimal  @db.Decimal(12, 2)
+  description  String
+  date         DateTime @default(now())
+  reference    String?
+  recordedById String   @map("recorded_by_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category   BudgetCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  recordedBy User           @relation("BudgetExpenseRecorder", fields: [recordedById], references: [id])
+
+  @@index([categoryId])
+  @@index([date])
+  @@map("budget_expenses")
 }
 
 // ===========================================
@@ -1667,13 +1922,13 @@ model BookCategory {
 }
 
 model LibraryLocation {
-  id        String  @id @default(uuid())
-  name      String  @unique // e.g., "Main Library", "CS Reading Room"
-  building  String?
-  floor     String?
-  section   String? // e.g., "A1", "B2"
-  capacity  Int?    // Shelf capacity
-  isActive  Boolean @default(true) @map("is_active")
+  id       String  @id @default(uuid())
+  name     String  @unique // e.g., "Main Library", "CS Reading Room"
+  building String?
+  floor    String?
+  section  String? // e.g., "A1", "B2"
+  capacity Int? // Shelf capacity
+  isActive Boolean @default(true) @map("is_active")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1905,7 +2160,7 @@ model EmailTemplate {
   bodyHtmlLocal String?  @map("body_html_local") @db.Text
   bodyTextLocal String?  @map("body_text_local") @db.Text
   variables     String[]
-  category      String?  // auth, admission, academic, finance, hr, library, general
+  category      String? // auth, admission, academic, finance, hr, library, general
   isActive      Boolean  @default(true) @map("is_active")
 
   // Timestamps
@@ -1918,18 +2173,18 @@ model EmailTemplate {
 }
 
 model EmailLog {
-  id         String      @id @default(uuid())
-  to         String[]
-  cc         String[]
-  bcc        String[]
-  subject    String
-  template   String?
-  bodyHtml   String?     @map("body_html") @db.Text
-  status     EmailStatus @default(PENDING)
-  error      String?
-  attempts   Int         @default(0)
-  sentAt     DateTime?   @map("sent_at")
-  scheduledAt DateTime?  @map("scheduled_at")
+  id          String      @id @default(uuid())
+  to          String[]
+  cc          String[]
+  bcc         String[]
+  subject     String
+  template    String?
+  bodyHtml    String?     @map("body_html") @db.Text
+  status      EmailStatus @default(PENDING)
+  error       String?
+  attempts    Int         @default(0)
+  sentAt      DateTime?   @map("sent_at")
+  scheduledAt DateTime?   @map("scheduled_at")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1941,15 +2196,15 @@ model EmailLog {
 }
 
 model Notification {
-  id        String           @id @default(uuid())
-  userId    String           @map("user_id")
-  type      NotificationType
-  title     String
-  message   String
-  data      Json?
-  link      String?
-  isRead    Boolean          @default(false) @map("is_read")
-  readAt    DateTime?        @map("read_at")
+  id      String           @id @default(uuid())
+  userId  String           @map("user_id")
+  type    NotificationType
+  title   String
+  message String
+  data    Json?
+  link    String?
+  isRead  Boolean          @default(false) @map("is_read")
+  readAt  DateTime?        @map("read_at")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
@@ -1964,7 +2219,7 @@ model Notification {
 
 model ScheduledEmail {
   id          String      @id @default(uuid())
-  options     Json        // EmailOptions serialized
+  options     Json // EmailOptions serialized
   scheduledAt DateTime    @map("scheduled_at")
   status      EmailStatus @default(PENDING)
   processedAt DateTime?   @map("processed_at")
@@ -1983,12 +2238,12 @@ model ScheduledEmail {
 
 model SMSLog {
   id          String    @id @default(uuid())
-  to          String    // Phone number with country code
+  to          String // Phone number with country code
   message     String    @db.Text
-  template    String?   // Template name used
+  template    String? // Template name used
   status      SMSStatus @default(PENDING)
   messageId   String?   @map("message_id") // Provider message ID
-  provider    String?   // SMS provider used
+  provider    String? // SMS provider used
   error       String?
   cost        Decimal?  @db.Decimal(10, 4)
   sentAt      DateTime? @map("sent_at")
@@ -2025,18 +2280,18 @@ model OTPCode {
 // ===========================================
 
 model PaymentSession {
-  id           String                   @id @default(uuid())
-  studentId    String                   @map("student_id")
-  invoiceId    String?                  @map("invoice_id")
-  amount       Decimal                  @db.Decimal(12, 2)
-  currency     String                   @default("USD")
-  status       PaymentTransactionStatus @default(PENDING)
-  expiresAt    DateTime                 @map("expires_at")
-  completedAt  DateTime?                @map("completed_at")
+  id          String                   @id @default(uuid())
+  studentId   String                   @map("student_id")
+  invoiceId   String?                  @map("invoice_id")
+  amount      Decimal                  @db.Decimal(12, 2)
+  currency    String                   @default("USD")
+  status      PaymentTransactionStatus @default(PENDING)
+  expiresAt   DateTime                 @map("expires_at")
+  completedAt DateTime?                @map("completed_at")
 
   // Relations
-  student      Student                  @relation(fields: [studentId], references: [id])
-  invoice      Invoice?                 @relation(fields: [invoiceId], references: [id])
+  student      Student              @relation(fields: [studentId], references: [id])
+  invoice      Invoice?             @relation(fields: [invoiceId], references: [id])
   transactions PaymentTransaction[]
 
   // Timestamps
@@ -2050,28 +2305,28 @@ model PaymentSession {
 }
 
 model PaymentTransaction {
-  id             String                   @id @default(uuid())
-  sessionId      String?                  @map("session_id")
-  studentId      String?                  @map("student_id")
-  invoiceId      String?                  @map("invoice_id")
-  paymentId      String?                  @map("payment_id") // Link to Payment record
-  amount         Decimal                  @db.Decimal(12, 2)
-  currency       String                   @default("USD")
-  method         PaymentMethod
-  provider       String                   // EVC_PLUS, ZAAD, SAHAL, BANK, etc.
-  providerTxnId  String?                  @map("provider_txn_id") // Provider's transaction ID
-  status         PaymentTransactionStatus @default(PENDING)
-  phone          String?                  // For mobile money payments
-  metadata       Json?
-  errorMessage   String?                  @map("error_message")
-  initiatedAt    DateTime                 @default(now()) @map("initiated_at")
-  completedAt    DateTime?                @map("completed_at")
+  id            String                   @id @default(uuid())
+  sessionId     String?                  @map("session_id")
+  studentId     String?                  @map("student_id")
+  invoiceId     String?                  @map("invoice_id")
+  paymentId     String?                  @map("payment_id") // Link to Payment record
+  amount        Decimal                  @db.Decimal(12, 2)
+  currency      String                   @default("USD")
+  method        PaymentMethod
+  provider      String // EVC_PLUS, ZAAD, SAHAL, BANK, etc.
+  providerTxnId String?                  @map("provider_txn_id") // Provider's transaction ID
+  status        PaymentTransactionStatus @default(PENDING)
+  phone         String? // For mobile money payments
+  metadata      Json?
+  errorMessage  String?                  @map("error_message")
+  initiatedAt   DateTime                 @default(now()) @map("initiated_at")
+  completedAt   DateTime?                @map("completed_at")
 
   // Relations
-  session  PaymentSession? @relation(fields: [sessionId], references: [id])
-  student  Student?        @relation(fields: [studentId], references: [id])
-  invoice  Invoice?        @relation(fields: [invoiceId], references: [id])
-  payment  Payment?        @relation(fields: [paymentId], references: [id])
+  session PaymentSession? @relation(fields: [sessionId], references: [id])
+  student Student?        @relation(fields: [studentId], references: [id])
+  invoice Invoice?        @relation(fields: [invoiceId], references: [id])
+  payment Payment?        @relation(fields: [paymentId], references: [id])
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")

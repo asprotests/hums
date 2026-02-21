@@ -44,6 +44,11 @@ import emailRoutes from './email.routes.js';
 import notificationRoutes from './notification.routes.js';
 import smsRoutes from './sms.routes.js';
 import paymentGatewayRoutes from './paymentGateway.routes.js';
+import scholarshipRoutes from './scholarship.routes.js';
+import feeWaiverRoutes from './feeWaiver.routes.js';
+import paymentPlanRoutes from './paymentPlan.routes.js';
+import refundRoutes from './refund.routes.js';
+import budgetRoutes from './budget.routes.js';
 
 const router: RouterType = Router();
 
@@ -75,6 +80,13 @@ router.use('/api/v1/fee-structures', feeStructureRoutes);
 router.use('/api/v1/invoices', invoiceRoutes);
 router.use('/api/v1/payments', paymentRoutes);
 router.use('/api/v1/finance', financeRoutes);
+
+// API v1 routes - Advanced Finance
+router.use('/api/v1/scholarships', scholarshipRoutes);
+router.use('/api/v1/fee-waivers', feeWaiverRoutes);
+router.use('/api/v1/payment-plans', paymentPlanRoutes);
+router.use('/api/v1/refunds', refundRoutes);
+router.use('/api/v1/budgets', budgetRoutes);
 
 // API v1 routes - Student Portal (self-service)
 router.use('/api/v1/student', studentPortalRoutes);
