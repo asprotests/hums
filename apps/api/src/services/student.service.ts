@@ -125,7 +125,6 @@ export class StudentService {
           select: {
             enrollments: true,
             payments: true,
-            borrowings: true,
           },
         },
       },
@@ -959,7 +958,6 @@ export class StudentService {
       stats: {
         enrollments: student._count?.enrollments || 0,
         payments: student._count?.payments || 0,
-        borrowings: student._count?.borrowings || 0,
       },
       account: {
         lastLoginAt: student.user?.lastLoginAt,

@@ -37,6 +37,37 @@ const envSchema = z.object({
   EMAIL_FROM_NAME: z.string().default('Hormuud University'),
   EMAIL_FROM_ADDRESS: z.string().default('noreply@hormuud.edu.so'),
   EMAIL_REPLY_TO: z.string().default('support@hormuud.edu.so'),
+
+  // SMS Configuration
+  SMS_PROVIDER: z.string().default('africa_talking'), // africa_talking, twilio, etc.
+  SMS_API_KEY: z.string().optional(),
+  SMS_API_SECRET: z.string().optional(),
+  SMS_SENDER_ID: z.string().default('HORMUUD-UNI'),
+  SMS_COST_PER_SMS: z.string().default('0.02'),
+
+  // Africa's Talking SMS
+  AT_API_KEY: z.string().optional(),
+  AT_USERNAME: z.string().optional(),
+
+  // EVC Plus (Hormuud Mobile Money)
+  EVC_MERCHANT_ID: z.string().optional(),
+  EVC_API_KEY: z.string().optional(),
+  EVC_API_SECRET: z.string().optional(),
+  EVC_BASE_URL: z.string().default('https://api.waafi.com'),
+
+  // ZAAD (Telesom Mobile Money)
+  ZAAD_MERCHANT_ID: z.string().optional(),
+  ZAAD_API_KEY: z.string().optional(),
+  ZAAD_BASE_URL: z.string().default('https://api.zaad.net'),
+
+  // SAHAL (Golis Mobile Money)
+  SAHAL_MERCHANT_ID: z.string().optional(),
+  SAHAL_API_KEY: z.string().optional(),
+  SAHAL_BASE_URL: z.string().default('https://api.sahal.net'),
+
+  // Payment Gateway General
+  PAYMENT_WEBHOOK_SECRET: z.string().default('payment-webhook-secret'),
+  PAYMENT_SESSION_TIMEOUT: z.string().default('600000'), // 10 minutes
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -233,24 +233,36 @@ class BookService {
    * Get popular books (most borrowed)
    */
   async getPopularBooks(limit: number = 10) {
+    // Get books with their borrowing counts through copies
+    const booksWithBorrowCounts = await prisma.$queryRaw<Array<{ id: string; borrowCount: bigint }>>`
+      SELECT b.id, COALESCE(COUNT(br.id), 0) as "borrowCount"
+      FROM books b
+      LEFT JOIN book_copies bc ON bc.book_id = b.id
+      LEFT JOIN borrowings br ON br.book_copy_id = bc.id
+      WHERE b.deleted_at IS NULL
+      GROUP BY b.id
+      ORDER BY "borrowCount" DESC
+      LIMIT ${limit}
+    `;
+
+    const bookIds = booksWithBorrowCounts.map(b => b.id);
+
     const books = await prisma.book.findMany({
-      where: { deletedAt: null },
+      where: { id: { in: bookIds } },
       include: {
         category: { select: { id: true, name: true, code: true } },
         location: { select: { id: true, name: true } },
-        _count: { select: { borrowings: true } },
       },
-      orderBy: {
-        borrowings: { _count: 'desc' },
-      },
-      take: limit,
     });
 
-    return books.map(book => ({
-      ...book,
-      borrowCount: book._count.borrowings,
-      _count: undefined,
-    }));
+    // Merge borrow counts with books
+    const borrowCountMap = new Map(booksWithBorrowCounts.map(b => [b.id, Number(b.borrowCount)]));
+    return books
+      .map(book => ({
+        ...book,
+        borrowCount: borrowCountMap.get(book.id) || 0,
+      }))
+      .sort((a, b) => b.borrowCount - a.borrowCount);
   }
 
   /**

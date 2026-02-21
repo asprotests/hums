@@ -42,6 +42,8 @@ import employeePortalRoutes from './employeePortal.routes.js';
 import libraryRoutes from './library.routes.js';
 import emailRoutes from './email.routes.js';
 import notificationRoutes from './notification.routes.js';
+import smsRoutes from './sms.routes.js';
+import paymentGatewayRoutes from './paymentGateway.routes.js';
 
 const router: RouterType = Router();
 
@@ -93,6 +95,10 @@ router.use('/api/v1/enrollments', enrollmentRoutes);
 // API v1 routes - Attendance
 router.use('/api/v1/attendance', studentAttendanceRoutes);
 router.use('/api/v1/employee-attendance', employeeAttendanceRoutes);
+
+// API v1 routes - SMS & Payment Gateway (must come before catch-all routes)
+router.use('/api/v1/sms', smsRoutes);
+router.use('/api/v1/payment-gateway', paymentGatewayRoutes);
 
 // API v1 routes - Grading System
 router.use('/api/v1/grade-scales', gradeScaleRoutes);

@@ -1,5 +1,5 @@
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
-import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar, Briefcase, CreditCard, Mail } from 'lucide-react';
+import { Users, Shield, LayoutDashboard, Activity, GraduationCap, UserPlus, School, DollarSign, Settings, Building2, BookOpen, ClipboardList, CalendarCheck, Clock, Calendar, Briefcase, CreditCard, Mail, MessageSquare } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -78,6 +78,8 @@ import {
 } from '@/pages/admin/grades';
 import { EmailTemplatesPage } from '@/pages/admin/EmailTemplatesPage';
 import { EmailTemplateEditorPage } from '@/pages/admin/EmailTemplateEditorPage';
+import { SMSDashboardPage } from '@/pages/admin/SMSDashboardPage';
+import { BulkSMSPage } from '@/pages/admin/BulkSMSPage';
 
 function AdminDashboard() {
   return (
@@ -303,6 +305,17 @@ function AdminDashboard() {
             </CardHeader>
           </Card>
         </Link>
+        <Link to="/admin/sms">
+          <Card className="hover:border-primary transition-colors cursor-pointer">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5" />
+                SMS Dashboard
+              </CardTitle>
+              <CardDescription>Send SMS and view delivery statistics</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
         <Link to="/admin/settings">
           <Card className="hover:border-primary transition-colors cursor-pointer">
             <CardHeader>
@@ -335,6 +348,7 @@ const navItems = [
   { path: '/admin/finance', label: 'Finance', icon: DollarSign },
   { path: '/admin/audit', label: 'Audit', icon: Activity },
   { path: '/admin/email', label: 'Email', icon: Mail },
+  { path: '/admin/sms', label: 'SMS', icon: MessageSquare },
   { path: '/admin/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -467,6 +481,10 @@ export function AdminPortal() {
         {/* Email Routes */}
         <Route path="email/templates" element={<EmailTemplatesPage />} />
         <Route path="email/templates/:id/edit" element={<EmailTemplateEditorPage />} />
+        {/* SMS Routes */}
+        <Route path="sms" element={<SMSDashboardPage />} />
+        <Route path="sms/bulk" element={<BulkSMSPage />} />
+        <Route path="sms/send" element={<BulkSMSPage />} />
         {/* Settings Routes */}
         <Route path="settings" element={<SystemSettingsPage />} />
       </Routes>

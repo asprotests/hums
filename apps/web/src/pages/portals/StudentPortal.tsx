@@ -21,6 +21,7 @@ import {
   StudentAnnouncementsPage,
   StudentTranscriptPage,
 } from '@/pages/student';
+import { OnlinePaymentPage } from '@/pages/student/OnlinePaymentPage';
 
 const navItems = [
   { path: '/student', label: 'Dashboard', icon: LayoutDashboard, exact: true },
@@ -81,6 +82,7 @@ export function StudentPortal() {
         <Route path="grades" element={<StudentGradesPage />} />
         <Route path="attendance" element={<StudentAttendancePage />} />
         <Route path="finance" element={<StudentFinancePage />} />
+        <Route path="finance/pay" element={<OnlinePaymentPage />} />
         <Route path="announcements" element={<StudentAnnouncementsPage />} />
         <Route path="transcript" element={<StudentTranscriptPage />} />
       </Routes>

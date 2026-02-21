@@ -101,6 +101,33 @@ enum PaymentMethod {
   BANK_TRANSFER
   MOBILE_MONEY
   EVC_PLUS
+  ZAAD
+  SAHAL
+  CARD
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+  REFUNDED
+}
+
+enum SMSStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+}
+
+enum OTPPurpose {
+  LOGIN
+  PASSWORD_RESET
+  VERIFY_PHONE
+  VERIFY_EMAIL
+  PAYMENT
 }
 
 enum BorrowingStatus {
@@ -771,6 +798,8 @@ model Student {
   application           AdmissionApplication?
   holds                 Hold[]
   prerequisiteOverrides PrerequisiteOverride[]
+  paymentSessions       PaymentSession[]
+  paymentTransactions   PaymentTransaction[]
 
   @@index([studentId])
   @@index([programId])
@@ -1457,8 +1486,10 @@ model Invoice {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  student  Student   @relation(fields: [studentId], references: [id])
-  payments Payment[]
+  student             Student              @relation(fields: [studentId], references: [id])
+  payments            Payment[]
+  paymentSessions     PaymentSession[]
+  paymentTransactions PaymentTransaction[]
 
   @@index([studentId])
   @@index([status])
@@ -1482,8 +1513,9 @@ model Payment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  invoice Invoice? @relation(fields: [invoiceId], references: [id])
-  student Student  @relation(fields: [studentId], references: [id])
+  invoice      Invoice?             @relation(fields: [invoiceId], references: [id])
+  student      Student              @relation(fields: [studentId], references: [id])
+  transactions PaymentTransaction[]
 
   @@index([studentId])
   @@index([invoiceId])
@@ -1943,4 +1975,112 @@ model ScheduledEmail {
 
   @@index([scheduledAt, status])
   @@map("scheduled_emails")
+}
+
+// ===========================================
+// SMS Models
+// ===========================================
+
+model SMSLog {
+  id          String    @id @default(uuid())
+  to          String    // Phone number with country code
+  message     String    @db.Text
+  template    String?   // Template name used
+  status      SMSStatus @default(PENDING)
+  messageId   String?   @map("message_id") // Provider message ID
+  provider    String?   // SMS provider used
+  error       String?
+  cost        Decimal?  @db.Decimal(10, 4)
+  sentAt      DateTime? @map("sent_at")
+  deliveredAt DateTime? @map("delivered_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([to])
+  @@index([status])
+  @@index([createdAt])
+  @@map("sms_logs")
+}
+
+model OTPCode {
+  id        String     @id @default(uuid())
+  phone     String
+  code      String
+  purpose   OTPPurpose
+  expiresAt DateTime   @map("expires_at")
+  verified  Boolean    @default(false)
+  attempts  Int        @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([phone, purpose])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
+
+// ===========================================
+// Payment Gateway Models
+// ===========================================
+
+model PaymentSession {
+  id           String                   @id @default(uuid())
+  studentId    String                   @map("student_id")
+  invoiceId    String?                  @map("invoice_id")
+  amount       Decimal                  @db.Decimal(12, 2)
+  currency     String                   @default("USD")
+  status       PaymentTransactionStatus @default(PENDING)
+  expiresAt    DateTime                 @map("expires_at")
+  completedAt  DateTime?                @map("completed_at")
+
+  // Relations
+  student      Student                  @relation(fields: [studentId], references: [id])
+  invoice      Invoice?                 @relation(fields: [invoiceId], references: [id])
+  transactions PaymentTransaction[]
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([studentId])
+  @@index([status])
+  @@index([expiresAt])
+  @@map("payment_sessions")
+}
+
+model PaymentTransaction {
+  id             String                   @id @default(uuid())
+  sessionId      String?                  @map("session_id")
+  studentId      String?                  @map("student_id")
+  invoiceId      String?                  @map("invoice_id")
+  paymentId      String?                  @map("payment_id") // Link to Payment record
+  amount         Decimal                  @db.Decimal(12, 2)
+  currency       String                   @default("USD")
+  method         PaymentMethod
+  provider       String                   // EVC_PLUS, ZAAD, SAHAL, BANK, etc.
+  providerTxnId  String?                  @map("provider_txn_id") // Provider's transaction ID
+  status         PaymentTransactionStatus @default(PENDING)
+  phone          String?                  // For mobile money payments
+  metadata       Json?
+  errorMessage   String?                  @map("error_message")
+  initiatedAt    DateTime                 @default(now()) @map("initiated_at")
+  completedAt    DateTime?                @map("completed_at")
+
+  // Relations
+  session  PaymentSession? @relation(fields: [sessionId], references: [id])
+  student  Student?        @relation(fields: [studentId], references: [id])
+  invoice  Invoice?        @relation(fields: [invoiceId], references: [id])
+  payment  Payment?        @relation(fields: [paymentId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([invoiceId])
+  @@index([status])
+  @@index([providerTxnId])
+  @@map("payment_transactions")
 }
