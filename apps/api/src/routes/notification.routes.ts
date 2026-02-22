@@ -1,5 +1,6 @@
 import { Router, type Router as RouterType } from 'express';
 import { notificationService } from '../services/notification.service.js';
+import { notificationPreferenceService } from '../services/notificationPreference.service.js';
 import { authenticate, authorize, validate } from '../middleware/index.js';
 import {
   createNotificationSchema,
@@ -7,6 +8,7 @@ import {
   roleNotificationSchema,
   notificationQuerySchema,
 } from '../validators/email.validator.js';
+import { updatePreferencesSchema } from '../validators/twoFactorNotification.validator.js';
 import { asyncHandler, sendSuccess, sendCreated, sendPaginated } from '../utils/index.js';
 
 const router: RouterType = Router();
@@ -100,6 +102,53 @@ router.delete(
     const userId = req.user!.userId;
     await notificationService.deleteNotification(req.params.id, userId);
     return sendSuccess(res, null, 'Notification deleted');
+  })
+);
+
+// ============================================
+// Notification Preferences Routes
+// ============================================
+
+/**
+ * @route   GET /api/v1/notifications/preferences
+ * @desc    Get notification preferences for current user
+ * @access  Private
+ */
+router.get(
+  '/preferences',
+  asyncHandler(async (req, res) => {
+    const preferences = await notificationPreferenceService.getPreferences(req.user!.userId);
+    return sendSuccess(res, preferences);
+  })
+);
+
+/**
+ * @route   PATCH /api/v1/notifications/preferences
+ * @desc    Update notification preferences
+ * @access  Private
+ */
+router.patch(
+  '/preferences',
+  validate(updatePreferencesSchema),
+  asyncHandler(async (req, res) => {
+    const preferences = await notificationPreferenceService.updatePreferences(
+      req.user!.userId,
+      req.body
+    );
+    return sendSuccess(res, preferences, 'Preferences updated');
+  })
+);
+
+/**
+ * @route   GET /api/v1/notifications/channels
+ * @desc    Get available notification channels for current user
+ * @access  Private
+ */
+router.get(
+  '/channels',
+  asyncHandler(async (req, res) => {
+    const channels = await notificationPreferenceService.getAvailableChannels(req.user!.userId);
+    return sendSuccess(res, { channels });
   })
 );
 

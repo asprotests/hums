@@ -795,9 +795,9 @@ async function main() {
 
   // Create Book Categories
   const bookCategories = [
-    { name: 'Computer Science', nameLocal: 'Sayniska Kombuyuutarka' },
-    { name: 'Mathematics', nameLocal: 'Xisaabta' },
-    { name: 'General Reference', nameLocal: 'Tixraac Guud' },
+    { name: 'Computer Science', nameLocal: 'Sayniska Kombuyuutarka', code: 'CS' },
+    { name: 'Mathematics', nameLocal: 'Xisaabta', code: 'MATH' },
+    { name: 'General Reference', nameLocal: 'Tixraac Guud', code: 'REF' },
   ];
 
   for (const category of bookCategories) {

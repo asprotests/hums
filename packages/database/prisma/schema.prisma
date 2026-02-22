@@ -355,6 +355,12 @@ enum BudgetStatus {
   CLOSED
 }
 
+enum TwoFactorMethod {
+  TOTP
+  SMS
+  EMAIL
+}
+
 // ===========================================
 // Core Auth & User Management Models
 // ===========================================
@@ -414,10 +420,72 @@ model User {
   refundsProcessed       RefundRequest[]      @relation("RefundProcessor")
   budgetExpensesRecorded BudgetExpense[]      @relation("BudgetExpenseRecorder")
 
+  // 2FA and Notification Preferences
+  twoFactorAuth          TwoFactorAuth?
+  notificationPreference NotificationPreference?
+
   @@index([email])
   @@index([username])
   @@index([isActive])
   @@map("users")
+}
+
+model TwoFactorAuth {
+  id          String          @id @default(uuid())
+  userId      String          @unique @map("user_id")
+  method      TwoFactorMethod @default(TOTP)
+  secret      String? // Encrypted TOTP secret
+  isEnabled   Boolean         @default(false) @map("is_enabled")
+  backupCodes String[]        @map("backup_codes") // Hashed backup codes
+  lastUsedAt  DateTime?       @map("last_used_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("two_factor_auth")
+}
+
+model NotificationPreference {
+  id     String @id @default(uuid())
+  userId String @unique @map("user_id")
+
+  // Email preferences
+  emailEnabled       Boolean @default(true) @map("email_enabled")
+  emailAcademic      Boolean @default(true) @map("email_academic")
+  emailFinance       Boolean @default(true) @map("email_finance")
+  emailLibrary       Boolean @default(true) @map("email_library")
+  emailAnnouncements Boolean @default(true) @map("email_announcements")
+  emailSystem        Boolean @default(true) @map("email_system") // Cannot be disabled
+
+  // SMS preferences
+  smsEnabled  Boolean @default(false) @map("sms_enabled")
+  smsUrgent   Boolean @default(true) @map("sms_urgent")
+  smsPayments Boolean @default(true) @map("sms_payments")
+  smsOtp      Boolean @default(true) @map("sms_otp") // Cannot be disabled
+
+  // Push preferences
+  pushEnabled       Boolean @default(true) @map("push_enabled")
+  pushAcademic      Boolean @default(true) @map("push_academic")
+  pushFinance       Boolean @default(true) @map("push_finance")
+  pushLibrary       Boolean @default(true) @map("push_library")
+  pushAnnouncements Boolean @default(true) @map("push_announcements")
+
+  // In-app preferences
+  inAppSound   Boolean @default(true) @map("in_app_sound")
+  inAppDesktop Boolean @default(true) @map("in_app_desktop")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
 }
 
 model Role {

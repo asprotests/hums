@@ -44,6 +44,7 @@ import emailRoutes from './email.routes.js';
 import notificationRoutes from './notification.routes.js';
 import smsRoutes from './sms.routes.js';
 import paymentGatewayRoutes from './paymentGateway.routes.js';
+import twoFactorRoutes from './twoFactor.routes.js';
 import scholarshipRoutes from './scholarship.routes.js';
 import feeWaiverRoutes from './feeWaiver.routes.js';
 import paymentPlanRoutes from './paymentPlan.routes.js';
@@ -139,5 +140,8 @@ router.use('/api/v1/library', libraryRoutes);
 // API v1 routes - Email & Notifications
 router.use('/api/v1/email', emailRoutes);
 router.use('/api/v1/notifications', notificationRoutes);
+
+// API v1 routes - Two-Factor Authentication
+router.use('/api/v1/2fa', twoFactorRoutes);
 
 export default router;
