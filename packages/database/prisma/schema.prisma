@@ -989,6 +989,7 @@ model Enrollment {
   @@index([classId])
   @@index([semesterId])
   @@index([status])
+  @@index([studentId, semesterId]) // Performance: Common query pattern
   @@map("enrollments")
 }
 
@@ -1233,6 +1234,7 @@ model StudentAttendance {
   @@index([studentId])
   @@index([classId])
   @@index([date])
+  @@index([classId, date]) // Performance: Common query for class attendance
   @@map("student_attendances")
 }
 
@@ -1674,6 +1676,7 @@ model Payment {
   @@index([invoiceId])
   @@index([method])
   @@index([createdAt])
+  @@index([studentId, createdAt]) // Performance: Payment history queries
   @@map("payments")
 }
 
